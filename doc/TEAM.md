@@ -44,7 +44,6 @@ Sao chép mẫu cho mỗi thành viên; tiêu đề họ tên không dấu-MSSV.
 - Môi trường cá nhân: Windows 11 Pro, Python 3.11.15 trong `.venv`, PyTorch CPU; lượt chạy dùng OMP_NUM_THREADS=4 và MKL_NUM_THREADS=4. `pip check` không có dependency lỗi. Qdrant 1.9.7 phản hồi tại localhost:6333, collection `lab24_production` có 116 points từ 25 tài liệu. BGE-M3 và BGE reranker v2-m3 đã tải, kiểm tra SHA-256 và chạy model thật; evaluator `gpt-4o-mini` + `text-embedding-3-small`. Việc này không khẳng định đã chạy NeMo/Phase C.
 - Điều cần nắm từ phần này: matrix worst_metric đếm mọi câu; chọn distribution yếu bằng điểm mean thấp nhất; phải đọc answer/context/reference trước khi quy nguyên nhân. Model generation và evaluator được ghi riêng.
 - Giới hạn/cách xử lý: không dùng lexical proxy thay RAGAS; model/retrieval lỗi thì dừng. Khóa PyArrow 17 để tương thích NumPy 1.26.4, thêm SentencePiece cho tokenizer reranker; giữ nguyên policy cũ/mới và ground truth của fixture. Ba answers abstain dù có một phần hoặc đủ bằng chứng; câu multi-hop thiếu coverage top 3; một số phép tính đúng bị faithfulness chấm 0. Giữ điểm thật và phân tích các giới hạn này trong failure report, không tự sửa số cho đạt điểm.
-- Nguồn/AI hỗ trợ: Codex hỗ trợ viết code, chạy kiểm tra và đối chiếu hướng dẫn starter. Kết quả API và báo cáo phải kiểm chứng bằng artifacts thực tế; thành viên cần đọc và giải thích lại mã trước khi nộp.
 
 ### {{HoVaTen}}-{{MSSV}}
 
