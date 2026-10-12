@@ -15,8 +15,10 @@ QDRANT_PORT = 6333
 COLLECTION_NAME = "lab24_production"
 NAIVE_COLLECTION = "lab24_naive"
 
-# --- Embedding (same as Day 18) ---
-EMBEDDING_MODEL = "BAAI/bge-m3"
+# --- Embedding ---
+# Use the configured online provider; this keeps the pipeline from downloading
+# or running a local model on this Windows machine.
+EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_DIM = 1024
 
 # --- Chunking (same as Day 18) ---

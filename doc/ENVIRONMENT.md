@@ -65,9 +65,12 @@ python scripts/setup_answers.py --live
 ```
 
 Qdrant dùng tag [v1.9.7](https://github.com/qdrant/qdrant/releases/tag/v1.9.7),
-không dùng `latest`. Setup sẽ tải embedding BGE-M3/reranker theo module bài
-trước; nhóm cần cache/download xong trước lớp. Model/download/indexing có thể
-mất lâu tùy máy và mạng. Generation/enrichment có thể gọi API, có chi phí.
+không dùng `latest`. Trong checkout này, `src/m2_search.py` dùng OpenAI
+`text-embedding-3-small` với 1024 chiều và `src/m3_rerank.py` gọi
+`gpt-4o-mini` để xếp hạng; không cần tải hoặc chạy BGE weights cục bộ.
+Generation, enrichment, embedding, reranking và RAGAS đều gọi API khi chạy
+live và có thể phát sinh chi phí. Cấu hình `OPENAI_API_KEY` cục bộ trước khi
+chạy `python scripts/setup_answers.py --live`.
 
 Ghi OS, Python, kết quả pip/import/compiler/model download trong TEAM. Nếu full
 stack cài chưa xong, ghi lỗi thật; không điền “tương thích” dựa trên dry-run.

@@ -19,7 +19,7 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import ROOT_DIR, TEST_SET_PATH, ANSWERS_PATH, GENERATION_MODEL
+from config import ROOT_DIR, TEST_SET_PATH, ANSWERS_PATH, GENERATION_MODEL, OPENAI_API_KEY
 
 
 def check_day18_files() -> bool:
@@ -118,6 +118,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not args.live:
         parser.error("Generation/enrichment may call APIs. Pass --live after completing pre-class setup.")
+    if not OPENAI_API_KEY:
+        print("\n❌ OPENAI_API_KEY is missing. Add it to the project .env, then rerun this command.")
+        sys.exit(2)
     print("=" * 60)
     print("K4 / TRACK 3A SETUP — Generating answers for 50 questions")
     print("=" * 60)
@@ -138,7 +141,6 @@ def main(argv=None):
 
     print(f"\nRunning {len(test_set)} queries...")
     answers = []
-    from config import OPENAI_API_KEY
     client = None
     if OPENAI_API_KEY:
         from openai import OpenAI
