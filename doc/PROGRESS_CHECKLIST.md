@@ -71,10 +71,13 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 - [ ] Complete every member’s real role, evidence, checks, learning, limitations and AI/source disclosure in `doc/TEAM.md`; remove placeholders.
 - [x] Complete all three reports from actual artifacts; report contract validation passes with no placeholders or blank required tables.
 - [ ] Run `python scripts/check_lab.py` from the repo root and resolve issues. Latest run passes every check except `doc/TEAM.md`, which still has unresolved member/group identity placeholders.
-- [x] Re-ran Phase B once only because the merged Member 1 branch replaced 37 answer texts and all 50 contexts; this restored source consistency. Phase C final artifact remains valid, and no further live runs are planned.
-- [ ] Check for secrets and real personal data. Keep `.env`, virtual environments, model caches and installers out of the submission.
-- [x] Scan tracked Git content for API-key-shaped values: none found; `.env` is not tracked. All existing experiment artifacts parse as JSON.
-- [ ] Verify all experiment artifacts are committed and not ignored; CP3 is pushed, while merged Member 1 and refreshed Phase B artifacts await the merge commit.
+- [x] Re-ran Phase B once because the merged Member 1 branch replaced 37 answer texts and all 50 contexts; this restored source consistency. Phase C final artifact remains valid, and no further live runs are planned.
+- [x] Secret/data review: committed-file scan found no API-key-shaped value; `.env`, `.venv`, caches and installers are not tracked. Fixture PII is synthetic; TEAM contains the teammate identity they supplied for submission.
+- [x] Scan committed Git content for API-key-shaped values: none found; `.env` is not tracked. All four experiment artifacts are tracked and not ignored.
+- [x] Merge PR #1 (`chiến` → `main`) with all Member 1 changes; local merge commit `f1b2239` was pushed and pulled back from `origin/main`. GitHub reports the PR merged.
+- [x] Offline suite after integration: `.venv\Scripts\python.exe -m pytest tests\ -m "not integration" -q --tb=short` — 94 passed, 3 deselected. `pip check` passes; NumPy 1.26.4, PyArrow 17.0.0 and SentencePiece 0.2.2 verified.
+- [x] Verify all experiment artifacts are committed and not ignored; `answers_50q.json`, `ragas_50q.json`, `judge_results.json` and `guard_results.json` are tracked on the merged main.
+- [x] Verify pushed main: clean working tree; local and remote HEAD both `f1b2239ff39e34c3e3e2b8f9cfe7f12bad6d46f0`.
 - [ ] Record final submission commit SHA in TEAM after member/group details are supplied, ensure graders can access the repo, and have the team lead submit one link through the announced VLearn/coach channel.
 - [ ] Confirm the lab date and applicable deadline from the coach announcement. The docs default to 23:59 on lab day, Asia/Ho_Chi_Minh.
 

@@ -18,15 +18,15 @@ Thêm/xóa rows để khớp nhóm thật; mẫu ba rows không ép nhóm phải
 | STT | Họ và tên | MSSV | Vai trò / công việc thật | Bằng chứng |
 |---|---|---|---|---|
 | 1 | Phùng Trọng Chiến | 2A202602430 | Member 1: module RAG m1–m5, sinh 50 answers, Phase A Tasks 1–4 và phân tích lỗi | Nhánh `chiến`; `src/m1_chunking.py` đến `src/m5_enrichment.py`, `src/phase_a_ragas.py`, `tests/test_member1_modules.py`, `artifacts/answers_50q.json`, `artifacts/ragas_50q.json`, `doc/reports/failure_clusters.md` |
-| 2 | {{Họ tên}} | {{MSSV}} | {{Phase/file/hàm}} | {{Commit/PR/report}} |
+| 2 | {{Họ tên}} | {{MSSV}} | Member 2: Phase B/C, judge/guard reports, final integration | Commits `f212848`, `367f484`, `98490fe`, merge `f1b2239`; `artifacts/judge_results.json`, `artifacts/guard_results.json`, `doc/reports/bias_report.md`, `doc/reports/blueprint.md` |
 
 Người tích hợp/chạy batch/nộp link: {{Họ tên, công việc và bằng chứng}}.
 
 ## Môi trường và chuẩn bị trước lớp
 
-OS/Python/compiler: {{Phiên bản thực tế}}.
-Virtualenv/dependencies/imports: {{Lệnh và kết quả}}.
-Models/Qdrant/50 answers đã chuẩn bị: {{Bằng chứng và giới hạn/fallback}}.
+OS/Python/compiler: Windows 11 Pro; project `.venv` Python 3.11.9; MSVC 14.51 / compiler 19.51.36260.
+Virtualenv/dependencies/imports: `.venv\Scripts\python.exe -m pip check` không có dependency lỗi; NumPy 1.26.4, PyArrow 17.0.0, SentencePiece 0.2.2; lab imports và offline tests đã kiểm tra.
+Models/Qdrant/50 answers đã chuẩn bị: Member 1 ghi nhận Qdrant 1.9.7, collection `lab24_production` có 116 chunks; retrieval dùng BGE-M3 và BGE reranker v2-m3 đã tải/kiểm tra trong môi trường Member 1. Generation dùng OpenAI `gpt-4o-mini-2024-07-18`; `artifacts/answers_50q.json` có 50 câu theo 20/20/10, không fallback. Project `.env` chứa key nhưng không được commit.
 Nếu cài full NeMo chưa thành công, ghi lỗi thực tế; không dùng unit test pass
 hoặc pip resolve để khẳng định runtime đã chạy.
 
@@ -47,12 +47,12 @@ Sao chép mẫu cho mỗi thành viên; tiêu đề họ tên không dấu-MSSV.
 
 ### {{HoVaTen}}-{{MSSV}}
 
-- Phần được giao và phần thực tế đã làm: {{Nhiệm vụ, file/hàm, mục đích}}.
-- Bằng chứng: {{Commit/PR và artifacts/reports liên quan}}.
-- Cách kiểm tra: {{Unit mock hoặc live experiment, lệnh và kết quả}}.
-- Điều đã học: {{Khái niệm và cách thể hiện trong bài}}.
-- Giới hạn/cách xử lý: {{Vấn đề và kiểm chứng}}.
-- Nguồn/AI hỗ trợ nếu có: {{Công cụ, phạm vi, cách tự kiểm chứng}}.
+- Phần được giao và phần thực tế đã làm: Member 2 phụ trách Phase B/C và tích hợp. Hoàn thiện judge pairwise/calibration, Presidio/NeMo rails, adversarial suite, output check và latency sampling; cập nhật bias report và blueprint.
+- Bằng chứng: commits `f212848` (CP2), `367f484` (CP3 implementation), `98490fe` (CP3 live), merge `f1b2239`; artifacts `judge_results.json`, `guard_results.json`; reports `bias_report.md`, `blueprint.md`.
+- Cách kiểm tra: sau khi nhận answers mới từ PR Member 1, chạy lại `.venv\Scripts\python.exe scripts\run_experiments.py --phase b --live` (timestamp `2026-10-12T16:19:49.416906+00:00`); Phase C live cuối có 20/20 attack, 8/8 clean và 4/4 outputs đúng. `.venv\Scripts\python.exe -m pytest tests\ -m "not integration" -q --tb=short`: 94 passed, 3 deselected. Checker qua tất cả artifact/report checks; TEAM còn thiếu danh tính thật.
+- Điều đã học: đảo thứ tự A/B giúp nhận biết bất ổn của judge; guard phải đánh giá attack cùng clean controls; latency cần đo từng tầng và báo P95 thật. Batch hiện tại đạt 20/20 attack và 0 false positives; input guard P95 931.35081 ms vượt budget 500 ms.
+- Giới hạn/cách xử lý: Phase B/C là tập mẫu nhỏ; RAG, output và full-request latency chưa đo. Đã rerun Phase B sau khi CP1 thay đổi 37 answers và contexts để candidate A khớp artifact mới. CI/CD trong blueprint là đề xuất, chưa triển khai.
+- Nguồn/AI hỗ trợ nếu có: OpenAI Codex hỗ trợ triển khai/sửa code và soạn báo cáo trong phạm vi Member 2; tự kiểm chứng bằng offline suite, live artifacts, schema/report contracts và checker. Không ghi API key vào repo.
 
 ## Cập nhật sau khi nộp
 
