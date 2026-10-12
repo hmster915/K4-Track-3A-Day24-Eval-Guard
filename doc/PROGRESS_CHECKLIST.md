@@ -61,22 +61,21 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 - [x] Task 11 implementation: checks supplied outputs and preserves clean answers; blocked answers use NeMo's guarded response or a refusal fallback.
 - [x] Task 12 implementation: sequential Presidio + NeMo input timing, two real warm-ups excluded, at least 20 positive timed samples and linear percentiles from raw samples.
 - [x] Run Phase C offline tests: `.venv\Scripts\python.exe -m pytest tests\test_phase_c.py tests\test_support.py tests\test_report_contracts.py -q` — 72 passed.
-- [ ] Run `.venv\Scripts\python.exe scripts\run_experiments.py --phase c --live --latency-samples 20` and save real `artifacts/guard_results.json`. Attempted 2026-10-12; NeMo's first required OpenAI call failed with HTTP 429 `insufficient_quota`; runner stopped before writing an artifact. Retry only after the configured OpenAI API account has available credits.
-- [ ] Confirm at least 15/20 attacks blocked, all 8/8 clean controls allowed (false-positive rate 0), and all four output cases correct. Requires a successful live batch.
-- [ ] Report measured input-layer latency honestly. RAG, output and full-request latency remain “chưa đo” unless separately measured; do not infer full-stack latency from input timing.
-- [ ] Finalize `doc/reports/blueprint.md` after Phase C live: the report now contains the architecture, A/B evidence, proposed gates, privacy/monitoring guidance and explicit “chưa đo” fields; update attack/clean/output and latency results only from a successful live artifact.
+- [x] Run `.venv\Scripts\python.exe scripts\run_experiments.py --phase c --live --latency-samples 20`; final real artifact saved at `artifacts/guard_results.json` (created_at `2026-10-12T16:08:15.202430+00:00`, after two prompt-calibration runs).
+- [x] Final live batch: 20/20 attacks blocked, 8/8 clean controls allowed (false-positive rate 0), and all 4 output cases correct. Meets the 15/20 lab threshold and 18/20 bonus target.
+- [x] Report measured input-layer latency: 20 samples, 2 warm-ups; sequential P95 931.35081 ms, over the 500 ms budget. RAG, output and full-request latency remain “chưa đo”; no full-stack inference from input timing.
+- [x] Complete `doc/reports/blueprint.md` using A/B/C artifacts, actual latency, CI proposals, monitoring, privacy and limitations; CI/CD remains explicitly a proposal.
 
 ## CP4 — Reports, checker and submission
 
 - [ ] Complete every member’s real role, evidence, checks, learning, limitations and AI/source disclosure in `doc/TEAM.md`; remove placeholders.
-- [ ] Complete all three reports from actual artifacts; no placeholders, blank required tables, fabricated judgments or invented measurements.
-- [ ] Run `python scripts/check_lab.py` from the repo root and resolve issues. `--with-tests` can combine offline tests if desired.
+- [x] Complete all three reports from actual artifacts; report contract validation passes with no placeholders or blank required tables.
+- [ ] Run `python scripts/check_lab.py` from the repo root and resolve issues. Latest run passes every check except `doc/TEAM.md`, which still has unresolved member/group identity placeholders.
 - [ ] Do not rerun live integration after Phase B/C batches already created artifacts; prevent duplicate API calls/costs.
 - [ ] Check for secrets and real personal data. Keep `.env`, virtual environments, model caches and installers out of the submission.
-- [x] Scan tracked Git content for API-key-shaped values: none found; `.env` is not tracked. Existing answers/Phase A/Phase B artifacts are tracked and parse as JSON; Phase C artifact is still missing.
-- [ ] Verify all required artifacts are committed and not ignored; Phase C is pending. Current branch was clean and `origin/main` matched commit `367f4846ebc68dc03ef1ed6cb4302a3bd6462e4e` at verification.
-- [ ] Run `python scripts/check_lab.py` and resolve remaining issues. Latest run: 2 failures, `doc/TEAM.md` unresolved identity placeholders and missing `artifacts/guard_results.json`.
-- [ ] Record the submission commit SHA in TEAM, ensure graders can access the repo, and have the team lead submit one link through the announced VLearn/coach channel.
+- [x] Scan tracked Git content for API-key-shaped values: none found; `.env` is not tracked. All existing experiment artifacts parse as JSON.
+- [x] Verify all experiment artifacts are committed and not ignored; `artifacts/guard_results.json` is included in the CP3 commit.
+- [ ] Record final submission commit SHA in TEAM after member/group details are supplied, ensure graders can access the repo, and have the team lead submit one link through the announced VLearn/coach channel.
 - [ ] Confirm the lab date and applicable deadline from the coach announcement. The docs default to 23:59 on lab day, Asia/Ho_Chi_Minh.
 
 ## Scoring reminders
