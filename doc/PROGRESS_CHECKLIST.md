@@ -43,15 +43,15 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 
 ## Phase B — Pairwise judge and human calibration (CP2, 30 minutes)
 
-- [ ] Task 5: judge A/B/tie against the reference with valid reasoning and scores in [0,1].
-- [ ] Task 6: run both A/B and B/A with identical question/reference; map both results back to original A/B and calculate consensus.
-- [ ] Task 7: calculate Cohen’s κ on ten binary judgments and human labels in matching ID order; labels are integer 0/1.
-- [ ] Task 8: calculate position inconsistency and decisive-case verbosity win rate, with a cautious interpretation.
-- [ ] Use only pair IDs 1, 5, 12, 21, 41: candidate A from saved pipeline answer, B from supplied `model_answer`, reference from test-set `ground_truth`.
-- [ ] For ten binary judgments, evaluate the exact supplied `model_answer`; never send `human_label` or `human_note` to the judge. Join human labels only after predictions.
-- [ ] Run Phase B offline tests; record command/result.
-- [ ] Run `python scripts/run_experiments.py --phase b --live` once; save real `artifacts/judge_results.json`.
-- [ ] Complete `doc/reports/bias_report.md` with five pair records, ten calibration rows in source order, κ/agreement calculations, evidence and limitations.
+- [x] Task 5: judge A/B/tie against the reference with valid reasoning and scores in [0,1].
+- [x] Task 6: run both A/B and B/A with identical question/reference; map both results back to original A/B and calculate consensus.
+- [x] Task 7: calculate Cohen’s κ on ten binary judgments and human labels in matching ID order; labels are integer 0/1.
+- [x] Task 8: calculate position inconsistency and decisive-case verbosity win rate, with a cautious interpretation.
+- [x] Use only pair IDs 1, 5, 12, 21, 41: candidate A from saved pipeline answer, B from supplied `model_answer`, reference from test-set `ground_truth`.
+- [x] For ten binary judgments, evaluate the exact supplied `model_answer`; never send `human_label` or `human_note` to the judge. Join human labels only after predictions.
+- [x] Run Phase B offline tests: `.venv\Scripts\python.exe -m pytest tests\test_phase_b.py tests\test_support.py tests\test_report_contracts.py -q` — 68 passed.
+- [x] Run `.venv\Scripts\python.exe scripts\run_experiments.py --phase b --live`; saved real `artifacts/judge_results.json` after tightening the response schema on an initial invalid-response attempt.
+- [x] Complete `doc/reports/bias_report.md` with five pair records, ten calibration rows in source order, κ/agreement calculations, evidence and limitations.
 
 ## Phase C — Guardrails, clean controls and latency (CP3, 30 minutes)
 
