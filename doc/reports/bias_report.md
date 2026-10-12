@@ -1,27 +1,27 @@
 # Đánh giá LLM Judge Phase B
 
-Nhóm: Chưa ghi tên nhóm trong workspace.
+Nhóm: Chưa được cung cấp trong workspace.
 
-Người phụ trách: Chưa được cung cấp.
+Người phụ trách: Member 2.
 
-Nguồn: `artifacts/judge_results.json`; run timestamp: 2026-10-12T14:45:39.883958+00:00.
+Nguồn: `artifacts/judge_results.json`; run timestamp: 2026-10-12T16:19:49.416906+00:00.
 Models generation/judge: `gpt-4o-mini-2024-07-18` / `gpt-4o-mini`.
 
 ## Năm cặp A/B và hai lượt
 
-Nguồn cố định: A từ `artifacts/answers_50q.json:answer`; B từ `fixtures/human_labels_10q.json:model_answer`; reference từ `fixtures/test_set_50q.json:ground_truth`. IDs: 1, 5, 12, 21, 41. Cả hai lượt dùng cùng question và reference; lượt hai đảo vị trí rồi quy winner/scores về A/B ban đầu.
+Nguồn cố định: A từ `artifacts/answers_50q.json:answer`; B từ `fixtures/human_labels_10q.json:model_answer`; reference từ `fixtures/test_set_50q.json:ground_truth`. IDs: 1, 5, 12, 21, 41. Hai lượt dùng cùng question/reference; lượt đảo vị trí được quy về A/B gốc.
 
-| ID | Candidate A | Candidate B | Pass 1 → Pass 2 (quy về A/B gốc) | Final | Consistent | Scores pass 1 (A/B) | Scores pass 2 (A/B) | Reasoning hai lượt |
+| ID | Candidate A | Candidate B | Pass 1 → Pass 2 (A/B gốc) | Final | Consistent | Scores pass 1 (A/B) | Scores pass 2 (A/B) | Reasoning hai lượt |
 |---:|---|---|---|---|---|---|---|---|
-| 1 | Nhân viên được nghỉ 3 ngày làm việc khi kết hôn. | Nhân viên được nghỉ 3 ngày làm việc có lương khi kết hôn. | B → B | B | Có | 0.8 / 1.0 | 0.8 / 1.0 | Lượt 1: B nêu rõ ngày nghỉ có lương; A thiếu điều kiện này. Lượt 2: A (candidate gốc B) đầy đủ, B (candidate gốc A) thiếu điều kiện nghỉ có lương. |
-| 5 | Không tìm thấy. | Cần Giám đốc phòng ban phê duyệt. | B → A | tie | Không | 0.0 / 0.5 | 0.5 / 0.0 | Lượt 1: B có thông tin liên quan nhưng chưa chính xác hoàn toàn; A không cung cấp thông tin. Lượt 2: candidate gốc A bị xem là sai lệch, candidate gốc B bị xem là không có thông tin. |
-| 12 | Thưởng Tết tối thiểu cho nhân viên chính thức có từ 6 tháng trở lên là 1 tháng lương. | Nhân viên được thưởng Tết tối thiểu 1 tháng lương. | A → tie | tie | Không | 1.0 / 0.8 | 1.0 / 1.0 | Lượt 1: A nêu rõ đối tượng và điều kiện; B chung chung. Lượt 2: judge xem cả hai đúng và đủ theo reference. |
-| 21 | Không tìm thấy. | Được nghỉ 18 ngày phép (15 cơ bản + 3 thâm niên). Lương Senior từ 20 đến 35 triệu. | B → B | B | Có | 0.0 / 1.0 | 0.0 / 1.0 | Cả hai lượt chọn candidate gốc B vì trả lời đúng, đủ số ngày phép và khoảng lương; candidate gốc A không có nội dung trả lời. |
-| 41 | Nhân viên chính thức được hưởng 15 ngày phép năm có lương. | Nhân viên được nghỉ 12 ngày phép năm. | A → A | A | Có | 1.0 / 0.0 | 1.0 / 0.0 | Cả hai lượt chọn candidate gốc A theo policy v2024 hiện hành; B dùng policy cũ. |
+| 1 | Nhân viên được nghỉ 3 ngày làm việc khi kết hôn. | Nhân viên được nghỉ 3 ngày làm việc có lương khi kết hôn. | B → B | B | Có | 0.8 / 1.0 | 0.8 / 1.0 | Lượt 1: Đáp án B cung cấp thông tin đầy đủ hơn về việc nghỉ có lương, trong khi đáp án A thiếu thông tin này. Lượt 2: Đáp án A chính xác và đầy đủ hơn vì có thông tin về việc nghỉ có lương, trong khi đáp án B thiếu thông tin này. |
+| 5 | Cần Tổng Giám đốc (CEO) phê duyệt. | Cần Giám đốc phòng ban phê duyệt. | A → A | A | Có | 1.0 / 0.0 | 1.0 / 0.0 | Lượt 1: Đáp án A chính xác theo reference, trong khi đáp án B sai. Lượt 2: Đáp án B chính xác theo reference, trong khi đáp án A không đúng. |
+| 12 | Thưởng Tết tối thiểu cho nhân viên chính thức có từ 6 tháng trở lên là 1 tháng lương. | Nhân viên được thưởng Tết tối thiểu 1 tháng lương. | A → tie | tie | Không | 1.0 / 0.7 | 1.0 / 1.0 | Lượt 1: Đáp án A cung cấp thông tin đầy đủ và chính xác về mức thưởng Tết tối thiểu cho nhân viên có từ 6 tháng trở lên, trong khi đáp án B chỉ nêu chung chung mà không chỉ rõ đối tượng và điều kiện. Lượt 2: Cả hai đáp án đều chính xác và đầy đủ thông tin như trong reference, không có sự khác biệt về nội dung. |
+| 21 | Nhân viên Senior có 9 năm thâm niên sẽ được **18 ngày phép năm** (15 ngày cơ bản + 3 ngày cộng thêm cho thâm niên). Không tìm thấy thông tin về lương trong context. | Được nghỉ 18 ngày phép (15 cơ bản + 3 thâm niên). Lương Senior từ 20 đến 35 triệu. | B → B | B | Có | 0.8 / 1.0 | 0.7 / 1.0 | Lượt 1: Cả hai đáp án đều cung cấp thông tin về số ngày phép, nhưng đáp án B ngắn gọn và đầy đủ hơn về lương, trong khi đáp án A thiếu thông tin về lương. Lượt 2: Cả hai đáp án đều cung cấp thông tin về số ngày phép, nhưng đáp án A cung cấp thông tin về lương, trong khi đáp án B không có thông tin này, dẫn đến A chính xác và đầy đủ hơn. |
+| 41 | Nhân viên chính thức được hưởng 12 ngày phép năm theo chính sách năm 2023 và 15 ngày phép năm theo chính sách năm 2024. Nhân viên có thâm niên từ 5 năm trở lên được cộng thêm 1 ngày phép cho mỗi 5 năm làm việc liên tục. | Nhân viên được nghỉ 12 ngày phép năm. | A → A | A | Có | 1.0 / 0.0 | 0.9 / 0.3 | Lượt 1: Đáp án A cung cấp thông tin chính xác về số ngày phép theo cả hai chính sách, ưu tiên chính sách mới nhất, trong khi đáp án B chỉ nêu thông tin theo chính sách cũ. Lượt 2: Đáp án B cung cấp thông tin chính xác về cả hai chính sách và nêu rõ số ngày phép theo chính sách hiện hành, trong khi đáp án A chỉ nêu số ngày phép theo chính sách cũ. |
 
-Position inconsistency: **2/5 = 0.40** (IDs 5 và 12 đổi kết quả sau khi quy lượt đảo về A/B gốc). Verbosity win rate: **3/3 = 1.00** trong các case quyết định; ID 1 và 21 chọn B dài hơn, ID 41 chọn A dài hơn. Hai case còn lại là tie nên không đưa vào mẫu số.
+Position inconsistency: **1/5 = 0.20**. Verbosity win rate: **3/4 = 0.75** trong các case quyết định. Chi tiết: candidate A dài hơn thắng 2 lần; candidate B dài hơn thắng 1 lần.
 
-Đây là dấu hiệu cần theo dõi, chưa chứng minh judge ưu tiên vị trí hay độ dài. Có 5 cặp, hai case bất đồng và ba case quyết định; ở ID 1/41 phần dài hơn cũng chứa thông tin quan trọng về nghỉ có lương hoặc phiên bản chính sách, nên độ chính xác và độ dài đang đồng biến. Nên kiểm tra thêm nhiều cặp với nội dung đúng/sai được cân bằng độ dài trước khi kết luận verbosity bias.
+Position changed the mapped winner in 1/5 pairs. The longer answer won in 3/4 decisive cases. These five pairs are a small diagnostic sample; the rates indicate instability patterns, not proof that position or length caused a decision.
 
 ## Calibration đúng model_answer
 
@@ -29,19 +29,19 @@ Judge nhận đúng question, `model_answer` và ground truth từ fixtures. `hu
 
 | ID | model_answer gốc | Judge | Reasoning của judge | Human | Agree |
 |---:|---|---:|---|---:|---|
-| 1 | Nhân viên được nghỉ 3 ngày làm việc có lương khi kết hôn. | 1 | Đúng reference; nêu số ngày nghỉ và điều kiện không trừ vào phép năm. | 1 | Có |
-| 5 | Cần Giám đốc phòng ban phê duyệt. | 0 | Sai người phê duyệt; cần Tổng Giám đốc thay vì Giám đốc phòng ban. | 0 | Có |
-| 12 | Nhân viên được thưởng Tết tối thiểu 1 tháng lương. | 1 | Đúng reference; đáp ứng điều kiện và mức thưởng. | 1 | Có |
-| 21 | Được nghỉ 18 ngày phép (15 cơ bản + 3 thâm niên). Lương Senior từ 20 đến 35 triệu. | 1 | Đúng reference; đủ số ngày phép và khoảng lương. | 1 | Có |
-| 23 | Hoàn trả 25 triệu vì chưa đủ 1 năm cam kết. | 1 | Đúng chính sách hoàn trả trước khi đủ 1 năm cam kết. | 1 | Có |
-| 29 | Trưởng phòng phê duyệt. Phạt 2% tháng trên 8 triệu. | 0 | Thiếu phê duyệt Kế toán trưởng và mô tả sai phí phạt/quá hạn. | 0 | Có |
-| 33 | Phép: 19 ngày. Phụ cấp: 1.500.000 VNĐ/tháng. | 1 | Đúng số ngày phép và tổng phụ cấp theo reference. | 1 | Có |
-| 41 | Nhân viên được nghỉ 12 ngày phép năm. | 0 | Dùng policy cũ v2023; policy hiện hành v2024 quy định 15 ngày. | 0 | Có |
-| 46 | Nhân viên thử việc không được nghỉ phép năm và phải xin nghỉ không lương nếu cần. | 1 | Đúng reference; nêu không có phép năm và phải xin nghỉ không lương nếu cần. | 1 | Có |
-| 50 | Được, miễn là đảm bảo kết nối an toàn. | 0 | Sai vì policy cấm VPN cá nhân. | 0 | Có |
+| 1 | Nhân viên được nghỉ 3 ngày làm việc có lương khi kết hôn. | 1 | Câu trả lời chính xác theo reference, đầy đủ thông tin về số ngày nghỉ và điều kiện không trừ vào phép năm. | 1 | Có |
+| 5 | Cần Giám đốc phòng ban phê duyệt. | 0 | Câu trả lời sai vì yêu cầu phê duyệt cho đơn hàng trên 50 triệu là từ Tổng Giám đốc, không phải Giám đốc phòng ban. | 0 | Có |
+| 12 | Nhân viên được thưởng Tết tối thiểu 1 tháng lương. | 1 | Câu trả lời chính xác theo thông tin trong reference, nêu rõ điều kiện và mức thưởng cho nhân viên chính thức có từ 6 tháng trở lên. | 1 | Có |
+| 21 | Được nghỉ 18 ngày phép (15 cơ bản + 3 thâm niên). Lương Senior từ 20 đến 35 triệu. | 1 | Câu trả lời chính xác theo reference, nêu rõ số ngày phép và khoảng lương cho nhân viên Senior với 9 năm thâm niên. | 1 | Có |
+| 23 | Hoàn trả 25 triệu vì chưa đủ 1 năm cam kết. | 1 | Câu trả lời chính xác theo thông tin trong reference, nêu rõ rằng nhân viên phải hoàn trả 100% chi phí vì chưa đủ 1 năm cam kết. | 1 | Có |
+| 29 | Trưởng phòng phê duyệt. Phạt 2% tháng trên 8 triệu. | 0 | Câu trả lời sai vì không đề cập đến sự cần thiết có sự phê duyệt của Kế toán trưởng bên cạnh Trưởng phòng. Ngoài ra, phí phạt được tính cho quá hạn 15 ngày, không phải là 2% trên 8 triệu mà là 80.000 VNĐ. | 0 | Có |
+| 33 | Phép: 19 ngày. Phụ cấp: 1.500.000 VNĐ/tháng. | 1 | Câu trả lời cung cấp đúng số ngày phép và tổng phụ cấp hàng tháng theo thông tin trong tài liệu tham khảo. | 1 | Có |
+| 41 | Nhân viên được nghỉ 12 ngày phép năm. | 0 | Câu trả lời sai vì nó dựa trên chính sách cũ (v2023) thay vì chính sách hiện hành (v2024) là 15 ngày phép năm. | 0 | Có |
+| 46 | Nhân viên thử việc không được nghỉ phép năm và phải xin nghỉ không lương nếu cần. | 1 | Câu trả lời chính xác theo reference, nêu rõ rằng nhân viên thử việc không được nghỉ phép năm và phải xin nghỉ không lương nếu cần, đồng thời không bỏ qua phủ định quan trọng. | 1 | Có |
+| 50 | Được, miễn là đảm bảo kết nối an toàn. | 0 | Câu trả lời sai vì khẳng định rằng nhân viên Manager có thể dùng VPN cá nhân khi WFH, trong khi chính sách rõ ràng cấm việc này. | 0 | Có |
 
-Cohen’s κ: **1.000**. Observed agreement `p_o = 10/10 = 1.00`. Tỷ lệ nhãn human là 6/10 positive và 4/10 negative; expected agreement `p_e = (0.6×0.6) + (0.4×0.4) = 0.52`. Do đó `κ = (p_o − p_e)/(1 − p_e) = 1.00`. Tập này đạt ngưỡng bonus κ > 0.6, nhưng chỉ có 10 nhãn và không chứng minh judge tổng quát hóa trên dữ liệu khác.
+Cohen’s κ: **1.000**. Observed agreement `p_o = 1.00`; expected agreement `p_e = (6/10 × 6/10) + (4/10 × 4/10) = 0.52`. Vì vậy `κ = (p_o − p_e)/(1 − p_e) = 1.000`. Tập này đạt ngưỡng bonus κ > 0.6 trên đúng 10 câu đã gán nhãn.
 
 ## Giới hạn và cách dùng judge
 
-Batch sử dụng `gpt-4o-mini`, temperature 0 và JSON response format; pairwise có 5 cặp × 2 thứ tự, calibration có 10 câu. Nhãn judge trùng toàn bộ nhãn human trong mẫu này. Cần xem κ như agreement trên đúng 10 câu, không phải độ chính xác phổ quát. Các lượt pairwise không nhất quán ở ID 5 và 12 cho thấy nên giữ swap-and-average; tie là kết quả thận trọng khi hai thứ tự không đồng thuận. Không dùng winner A/B thay cho nhãn tốt/xấu 0/1 vì hai tác vụ có đối tượng đánh giá khác nhau.
+Batch dùng `gpt-4o-mini`, temperature 0 và JSON response format; pairwise có 5 cặp × 2 thứ tự, calibration có 10 câu. Nhãn judge trùng 10/10 nhãn human. Đây là mẫu nhỏ, không chứng minh judge tổng quát hóa. Giữ swap-and-average vì kết quả có thể đổi theo vị trí; tie là lựa chọn thận trọng khi hai thứ tự không đồng thuận. Không dùng winner A/B thay nhãn tốt/xấu 0/1 vì hai tác vụ có đối tượng đánh giá khác nhau.

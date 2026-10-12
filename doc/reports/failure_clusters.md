@@ -1,63 +1,123 @@
 # Phân tích lỗi Phase A
 
-Nhóm: Chưa ghi tên nhóm trong workspace.
+Người phụ trách: **Phùng Trọng Chiến — 2A202602430 (Member 1)**.
 
-Người phụ trách: Chưa được cung cấp.
+Repo nhóm: https://github.com/hmster915/K4-Track-3A-Day24-Eval-Guard. Nhóm có hai thành viên; báo cáo này thuộc phần Member 1.
 
-Nguồn: `artifacts/ragas_50q.json`; run timestamp: 2026-10-12T14:33:33.652566+00:00.
-Run live dùng 50 câu trả lời đã lưu; không có extractive fallback. Evaluator trả đủ 50 kết quả cho bốn metric.
-Models generation: `gpt-4o-mini-2024-07-18`; evaluator từ metadata m4: `gpt-4o-mini`, `text-embedding-3-small`.
+Nguồn: [ragas_50q.json](../../artifacts/ragas_50q.json), timestamp `2026-10-12T15:29:49.597111+00:00` (UTC), tương ứng **12/10/2026 22:29:49 UTC+07:00**. Answers: [answers_50q.json](../../artifacts/answers_50q.json).
+
+## Phạm vi và điều kiện chạy
+
+25 tài liệu Markdown trong `data/` → tìm tiêu đề mục → đọc tới tiêu đề tiếp theo → chia parent tối đa 2048 ký tự, child tối đa 256 ký tự → thêm nguồn/tiêu đề/phiên bản/mục từ corpus → 116 chunks → BM25 tiếng Việt + dense BGE-M3 trên Qdrant → RRF top 20 → cross-encoder top 3 → generation → bốn metric RAGAS trên 50 câu.
+
+Windows 11 Pro, Python 3.11.15, PyTorch CPU; lượt chạy dùng OMP_NUM_THREADS=4 và MKL_NUM_THREADS=4. Qdrant 1.9.7, collection `lab24_production`, 116 points. Enrichment chỉ thêm metadata từ tài liệu; không sinh fact hay gọi LLM. Mọi module nằm độc lập trong Day24.
+
+Generation: **50/50 `llm`**, model `gpt-4o-mini-2024-07-18`; **0 extractive fallback**. IDs 9, 39, 50 có answer “Không tìm thấy.”: đây là abstention do LLM tạo, không phải fallback. Giữ nguyên các answers này khi evaluation.
+
+Evaluator RAGAS 0.1.22: `gpt-4o-mini` và `text-embedding-3-small`, cấu hình trực tiếp trong m4 và chuyển `metadata.evaluator_models` sang Phase A. Alias evaluator không khẳng định snapshot provider đã resolve. Retrieval dùng `BAAI/bge-m3` (1024 chiều); rerank dùng `BAAI/bge-reranker-v2-m3`. Judge/guard không tham gia lượt A.
+
+Giữ nguyên question/distribution/ground_truth của fixture và policy cũ/mới. Generation chỉ nhận question và contexts. Không dùng ground truth làm answer; không dùng lexical proxy hoặc thay NaN bằng điểm giả. Cả 200 giá trị metric đều hữu hạn trong [0,1].
 
 ## Điểm theo distribution
 
 | Metric | factual (20) | multi_hop (20) | adversarial (10) |
 |---|---:|---:|---:|
-| faithfulness | 0.8833 | 0.4147 | 0.6000 |
-| answer_relevancy | 0.5002 | 0.4402 | 0.3157 |
-| context_precision | 1.0000 | 0.9417 | 1.0000 |
-| context_recall | 0.9250 | 0.8375 | 0.7167 |
-| avg_score | 0.8271 | 0.6585 | 0.6581 |
+| faithfulness | 0.9125 | 0.5464 | 0.8667 |
+| answer_relevancy | 0.4934 | 0.4643 | 0.5232 |
+| context_precision | 0.9750 | 0.9750 | 0.9833 |
+| context_recall | 0.9500 | 0.8458 | 0.6833 |
+| avg_score | 0.8327 | 0.7079 | 0.7641 |
 
-## Bottom 10 và nguyên nhân
+Số hiển thị làm tròn bốn chữ số; phép tính và đối chiếu dùng giá trị đầy đủ trong JSON.
 
-Các trường diagnosis/fix dưới đây được giữ nguyên từ Task 3 trong artifact. Phần phân tích sau bảng kiểm tra answer, contexts và ground truth để làm rõ nguyên nhân theo từng trường hợp.
+## Bottom 10 — nguyên văn đầu ra Task 3
 
-| Rank | ID | Câu hỏi | Distribution | Avg | Worst metric | Diagnosis | Suggested fix |
+| Rank | ID | Distribution | Question | Avg score | Worst metric | Diagnosis | Suggested fix |
 |---:|---:|---|---|---:|---|---|---|
-| 1 | 39 | So sánh yêu cầu mật khẩu giữa policy v1.0 và v2.0 về độ dài tối thiểu, thời hạn đổi và MFA. | multi_hop | 0.1250 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 2 | 21 | Một nhân viên Senior có 9 năm thâm niên được nghỉ bao nhiêu ngày phép năm và lương trong khoảng nào? | multi_hop | 0.3750 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 3 | 33 | Nhân viên Manager có thâm niên 12 năm: tổng phụ cấp hàng tháng và số ngày phép năm theo v2024 là bao nhiêu? | multi_hop | 0.3750 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 4 | 43 | Mật khẩu phải có tối thiểu bao nhiêu ký tự? | adversarial | 0.4167 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 5 | 48 | Nhân viên thử việc có được hưởng bảo hiểm sức khỏe PVI không? | adversarial | 0.4167 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 6 | 50 | Nhân viên Manager có thể dùng VPN cá nhân (như NordVPN) khi WFH để tăng bảo mật thêm không? | adversarial | 0.4167 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 7 | 9 | Nam nhân viên được nghỉ bao nhiêu ngày khi vợ sinh con? | factual | 0.5000 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 8 | 44 | Bao lâu phải đổi mật khẩu một lần? | adversarial | 0.5000 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 9 | 5 | Muốn mua thiết bị trị giá 55 triệu cần ai phê duyệt? | factual | 0.5000 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 10 | 7 | Nghỉ phép không lương 20 ngày cần ai phê duyệt? | factual | 0.5811 | context_recall | Missing relevant chunks | Improve chunking or add BM25 |
+| 1 | 39 | multi_hop | So sánh yêu cầu mật khẩu giữa policy v1.0 và v2.0 về độ dài tối thiểu, thời hạn đổi và MFA. | 0.2500 | faithfulness | Có thể có khẳng định thiếu căn cứ; đối chiếu answer với contexts | Yêu cầu dẫn nguồn và từ chối khi context thiếu bằng chứng |
+| 2 | 50 | adversarial | Nhân viên Manager có thể dùng VPN cá nhân (như NordVPN) khi WFH để tăng bảo mật thêm không? | 0.4167 | faithfulness | Có thể có khẳng định thiếu căn cứ; đối chiếu answer với contexts | Yêu cầu dẫn nguồn và từ chối khi context thiếu bằng chứng |
+| 3 | 9 | factual | Nam nhân viên được nghỉ bao nhiêu ngày khi vợ sinh con? | 0.5000 | faithfulness | Có thể có khẳng định thiếu căn cứ; đối chiếu answer với contexts | Yêu cầu dẫn nguồn và từ chối khi context thiếu bằng chứng |
+| 4 | 31 | multi_hop | Nhân viên đi công tác trong nước, ở khách sạn 2 đêm với giá 1.500.000 VNĐ/đêm. Công ty thanh toán tối đa bao nhiêu cho tiền khách sạn? | 0.5389 | faithfulness | Có thể có khẳng định thiếu căn cứ; đối chiếu answer với contexts | Yêu cầu dẫn nguồn và từ chối khi context thiếu bằng chứng |
+| 5 | 7 | factual | Nghỉ phép không lương 20 ngày cần ai phê duyệt? | 0.5684 | answer_relevancy | Có thể answer chưa trực tiếp đáp ứng câu hỏi | Kiểm tra câu hỏi/answer và yêu cầu trả lời đủ từng ý được hỏi |
+| 6 | 26 | multi_hop | Nhân viên vừa kết hôn và cùng tuần đó có con kết hôn. Tổng số ngày nghỉ đặc biệt có lương là bao nhiêu? | 0.5738 | faithfulness | Có thể có khẳng định thiếu căn cứ; đối chiếu answer với contexts | Yêu cầu dẫn nguồn và từ chối khi context thiếu bằng chứng |
+| 7 | 49 | adversarial | Theo chính sách nghỉ phép cũ (v2023), nhân viên được nghỉ bao nhiêu ngày? Còn chính sách nào đang có hiệu lực hiện tại? | 0.6210 | context_recall | Có thể thiếu ý cần thiết; đối chiếu contexts với reference | Kiểm tra ranh giới chunk và mở rộng retrieval cho câu nhiều bước |
+| 8 | 24 | multi_hop | Nhân viên tạm ứng 15 triệu, sau 20 ngày mới thanh toán. Bị phạt bao nhiêu? | 0.6227 | faithfulness | Có thể có khẳng định thiếu căn cứ; đối chiếu answer với contexts | Yêu cầu dẫn nguồn và từ chối khi context thiếu bằng chứng |
+| 9 | 34 | multi_hop | Nhân viên tạm ứng 4 triệu và một nhân viên khác tạm ứng 7 triệu: quy trình phê duyệt khác nhau thế nào? | 0.6792 | answer_relevancy | Có thể answer chưa trực tiếp đáp ứng câu hỏi | Kiểm tra câu hỏi/answer và yêu cầu trả lời đủ từng ý được hỏi |
+| 10 | 33 | multi_hop | Nhân viên Manager có thâm niên 12 năm: tổng phụ cấp hàng tháng và số ngày phép năm theo v2024 là bao nhiêu? | 0.6884 | answer_relevancy | Có thể answer chưa trực tiếp đáp ứng câu hỏi | Kiểm tra câu hỏi/answer và yêu cầu trả lời đủ từng ý được hỏi |
 
-Tám câu trong top 10 có answer đúng nguyên văn là “Không tìm thấy.” dù contexts chứa thông tin để trả lời. Ví dụ ID 9 có context ghi nam nhân viên nghỉ 5 ngày làm việc khi vợ sinh con, nhưng answer bỏ qua dữ kiện; ID 5 có context về ngưỡng phê duyệt đơn trên 50 triệu đồng nhưng cũng không trả lời. Vì vậy, nhãn faithfulness mặc định “LLM hallucinating” không mô tả sát hành vi quan sát được ở các hàng này: đó chủ yếu là lỗi từ chối/abstain khi đã có bằng chứng. Cần chỉnh prompt để trả lời ngắn gọn theo context và chỉ từ chối khi context thực sự thiếu dữ kiện; sau đó đánh giá lại cùng bộ câu hỏi.
+Diagnosis/fix trong bảng giữ đúng từ Task 3. Đây là dấu hiệu cần kiểm tra; kết luận bên dưới dựa thêm trên answer, contexts và reference của từng ID.
 
-ID 39 là lỗi multi-hop rõ nhất: context có cả policy v1.0 (8 ký tự, 90 ngày) và v2.0 (12 ký tự, 120 ngày, MFA), nhưng answer vẫn từ chối thay vì tổng hợp và phân biệt phiên bản. ID 21 và 33 cũng có context về chính sách phép thâm niên/2024 cùng dữ kiện lương hoặc phụ cấp, nhưng answer không tổng hợp được các phần cần nối. ID 7 được trả lời một phần là CEO; context top có ngưỡng 16–30 ngày nhưng bị cắt trước phần điều kiện tự đóng bảo hiểm, phù hợp với worst metric `context_recall`.
+## Đối chiếu bằng chứng và nguyên nhân
 
-Các trường hợp adversarial thể hiện hai loại bẫy. ID 43 và 44 truy xuất đồng thời policy mật khẩu cũ/mới; context chứa cả hai phiên bản, vì vậy câu trả lời cần ưu tiên v2.0 hiện hành (12 ký tự, đổi sau 120 ngày). ID 50 có context VPN ghi rõ không được dùng VPN cá nhân và phải dùng VPN WireGuard của công ty; answer lại từ chối. Với ID 48, context trả về bắt đầu bằng mảnh câu “được hưởng gói bảo hiểm sức khỏe PVI” nhưng thiếu phần phủ định đứng trước; đây là dấu hiệu chunking đã làm mất ngữ cảnh negation. Nên giữ câu phủ định cùng chunk và thêm kiểm tra version/current-policy trước khi trả lời.
+### 1. Từ chối dù có căn cứ — ID 9 và 50
+
+**ID 9:** answer “Không tìm thấy.”, faithfulness=0, relevancy=0, recall=1. Context đầu có “Sinh con (nam giới): 5 ngày làm việc liên tục” và quy định không trừ phép năm, khớp reference. Mốc nguồn: [nghi_phep_dac_biet.md](../../data/nghi_phep_dac_biet.md), mục “Các trường hợp được nghỉ phép đặc biệt”, dòng 5–8. Đây là lỗi generation/abstention quá mức; thiếu retrieval không giải thích được trường hợp này.
+
+**ID 50:** answer cũng là “Không tìm thấy.”. Context thứ hai có lệnh cấm VPN cá nhân (NordVPN, ExpressVPN) trong mạng công ty; context đầu yêu cầu VPN khi WFH. Mốc: [vpn_truy_cap.md](../../data/vpn_truy_cap.md), “Quy định sử dụng”, và [lam_viec_tu_xa.md](../../data/lam_viec_tu_xa.md), “Yêu cầu kỹ thuật”. Reference yêu cầu KHÔNG và dùng VPN công ty. Căn cứ để bác VPN cá nhân đã được retrieve nhưng không dùng để trả lời. Context còn thiếu phần xác định WireGuard nên recall=0,6667: có cả lỗi generation và thiếu một ý retrieval. Abstention không chứng minh đã nhận ra bẫy phủ định.
+
+**Đề xuất:** trả lời trực tiếp và trích căn cứ; chỉ abstain đối với ý thật sự thiếu. Với câu nhiều phần, trả lời phần đủ bằng chứng và nêu phần còn thiếu. Kiểm tra lại IDs 9/50 và các câu có đủ căn cứ trước khi mở rộng batch.
+
+### 2. Top 3 thiếu coverage — ID 39 và 33
+
+**ID 39:** contexts gồm độ dài v1 (8 ký tự), chu kỳ v1 (90 ngày) và MFA v2. Thiếu độ dài v2 (12 ký tự), chu kỳ v2 (120 ngày), lưu ý MFA v1; answer “Không tìm thấy.”. Mốc còn thiếu: [mat_khau_v2.md](../../data/mat_khau_v2.md), “Yêu cầu mật khẩu” dòng 5, “Chu kỳ thay đổi” dòng 11; [mat_khau_v1.md](../../data/mat_khau_v1.md), “Lưu ý”. Reference yêu cầu đủ hai phiên bản × ba thuộc tính. Recall=0,5 có bằng chứng thiếu coverage; generation đồng thời bỏ các ý đã có. Precision=0,5 là số judge đo, không đủ để kết luận mọi chunk v1 sai vì câu hỏi có yêu cầu v1.
+
+**ID 33:** contexts có phép cơ bản 15 ngày, thêm 1 ngày/3 năm và điện thoại Manager 500.000. Answer tính đúng **19 ngày phép** nhưng gọi **500.000** là tổng phụ cấp. Reference yêu cầu **1.500.000 = 1.000.000 ăn trưa + 500.000 điện thoại**. Mốc bị bỏ: [phu_cap.md](../../data/phu_cap.md), “Phụ cấp ăn trưa” dòng 5. Top 3 dùng hai slots cho phép năm và một cho điện thoại nên thiếu ăn trưa. Đây là lỗi retrieval coverage và generation kết luận “tổng” từ dữ liệu chưa đủ; recall=0,5.
+
+**Đề xuất:** giữ child để tìm mốc, rồi mở rộng parent/các mục cần thiết trước generation. Câu so sánh phiên bản phải giữ các nguồn được hỏi và đủ thuộc tính; không lọc toàn bộ bản cũ. Thử coverage trên IDs 33/39 rồi so điểm và số contexts, tránh chỉ tăng top-k và thêm nhiễu.
+
+### 3. Phép tính đúng nhưng faithfulness thấp — ID 24, 26, 31
+
+**ID 24:** answer **50.000 VNĐ = 2% × 15.000.000 × 5/30**, khớp reference. Contexts đủ hạn hoàn ứng 15 ngày và công thức pro-rata trong [tam_ung.md](../../data/tam_ung.md), “Thời hạn thanh toán” dòng 8, “Phạt quá hạn” dòng 11–13. Recall=1 nhưng faithfulness=0. Không đủ căn cứ để chỉ từ metric 0 kết luận phép tính là hallucination.
+
+**ID 26:** answer **4 ngày = 3 ngày kết hôn + 1 ngày con kết hôn**, khớp số ngày trong reference. Context đầu có hai số tại [nghi_phep_dac_biet.md](../../data/nghi_phep_dac_biet.md), dòng 6 và 9; đoạn cuối bị cắt ở “1 ngày làm” nhưng vẫn giữ số 1. Recall=1, faithfulness=0. Answer chưa nói rõ “không trừ phép năm”; phân biệt thiếu diễn giải với sai tổng số ngày.
+
+**ID 31:** answer **2.400.000 = 1.200.000/đêm × 2 đêm**, đúng reference và trần khách sạn trong [cong_tac_phi.md](../../data/cong_tac_phi.md), “Công tác trong nước” dòng 6. Chưa giải thích phần vượt trần do nhân viên chịu. Số đêm và giá thực tế đến từ question, không nằm trong policy context. Faithfulness=0; recall=0,6667.
+
+Trong RAGAS 0.1.22, Faithfulness tách statements từ question/answer nhưng bước NLI `_create_nli_prompt` chỉ gửi contexts và statements. Dữ kiện tình huống/tổng tính toán không ghi nguyên văn trong policy có thể bị judge coi là thiếu căn cứ. Đây là **giả thuyết về giới hạn evaluator**, phù hợp với ba đối chiếu trên; lượt này chưa lưu từng NLI verdict nên chưa chứng minh nguyên nhân riêng của từng điểm 0. Giữ nguyên điểm đã đo.
+
+**Đề xuất:** bổ sung kiểm tra công thức độc lập và review người. Nếu thử evaluator có question-premise, ghi thành phép đo mới, không thay scores baseline. Generation nên tách dữ kiện câu hỏi, quy tắc policy, phép tính và kết luận, có dẫn nguồn cho quy tắc.
+
+### 4. Trả lời đúng ý hỏi nhưng reference có thêm ý — ID 7, 34, 49
+
+**ID 7:** question hỏi ai phê duyệt 20 ngày không lương; answer CEO đúng mốc 16–30 ngày tại [nghi_phep_khong_luong.md](../../data/nghi_phep_khong_luong.md), “Quy trình phê duyệt” dòng 8. Reference còn yêu cầu tự đóng bảo hiểm khi nghỉ trên 14 ngày (dòng 11), nhưng mục này không được retrieve. Recall=0,5 và relevancy=0,2734 không chứng minh chọn sai người phê duyệt.
+
+**ID 34:** answer phân biệt đúng 4 triệu cần trưởng phòng và 7 triệu cần thêm kế toán trưởng, khớp [tam_ung.md](../../data/tam_ung.md), “Phê duyệt”. Reference thêm hạn hoàn ứng 15 ngày; context/answer thiếu ý này. Recall=0,6667, relevancy=0,3834. Phân biệt thiếu coverage so với reference đầy đủ với sai ý question thực sự hỏi.
+
+**ID 49:** answer đúng **v2023: 12 ngày**, **v2024 hiện hành: 15 ngày**. Contexts có cả hai phiên bản và thâm niên v2023, nhưng thiếu thâm niên v2024 (1 ngày/3 năm) mà reference yêu cầu. Mốc: [nghi_phep_nam_v2024.md](../../data/nghi_phep_nam_v2024.md), dòng 8; [nghi_phep_nam_v2023.md](../../data/nghi_phep_nam_v2023.md), dòng 8. Recall=0,3333 không đồng nghĩa dùng nhầm bản hiện hành; answer này đã nhận biết đúng phiên bản.
+
+**Đề xuất:** review các ý bắt buộc và bổ sung trong question/reference; giữ fixture gốc khi chấm lab. Bộ eval mới nên tách accuracy trên ý hỏi và reference coverage. AnswerRelevancy sinh ba câu hỏi từ answer rồi tính cosine với câu hỏi gốc, kèm cờ noncommittal; điểm thấp cần đọc cùng nội dung, không tự là bằng chứng lỗi nghiệp vụ.
 
 ## Matrix và nhóm yếu nhất
 
-Matrix đếm mỗi câu một lần theo metric có điểm thấp nhất; tổng hàng là số câu, không phải chất lượng.
-
-| Worst metric | factual | multi_hop | adversarial | Tổng |
+| Worst metric | factual | multi_hop | adversarial | Total |
 |---|---:|---:|---:|---:|
-| faithfulness | 3 | 13 | 4 | 20 |
-| answer_relevancy | 15 | 7 | 5 | 27 |
+| faithfulness | 2 | 10 | 1 | 13 |
+| answer_relevancy | 17 | 9 | 6 | 32 |
 | context_precision | 0 | 0 | 0 | 0 |
-| context_recall | 2 | 0 | 1 | 3 |
+| context_recall | 1 | 1 | 3 | 5 |
 
-Nhóm yếu theo mean thấp nhất: **adversarial**, mean **0.6581**. Worst metric xuất hiện nhiều nhất: **answer_relevancy**, 27/50 câu.
+Tổng mỗi cột là **20/20/10** vì mỗi câu đếm một lần theo metric thấp nhất. Không định nghĩa tất cả 50 câu là failures. Tie theo thứ tự faithfulness → answer_relevancy → context_precision → context_recall.
 
-Adversarial thấp hơn multi_hop khoảng 0.0004 điểm, nên hai nhóm gần như ngang nhau; kết luận nhóm yếu nhất dựa đúng vào mean nhỏ nhất và không nên diễn giải chênh lệch này như một khác biệt lớn. So với factual (0.8271), adversarial thấp hơn khoảng 0.1690. `answer_relevancy` thấp ở cả ba nhóm, và nhiều câu answer abstain dù context có dữ kiện, nên ưu tiên sửa quy tắc trả lời/abstain, rồi kiểm thử lại trên cùng 50 câu. Với các lỗi multi-hop, bổ sung hướng dẫn tổng hợp nhiều nguồn và xác định phiên bản hiện hành. Với câu phủ định như ID 48, điều chỉnh ranh giới chunk để không tách từ phủ định khỏi mệnh đề quyền lợi.
+Nhóm yếu nhất theo mean: **multi_hop = 0,7079**. Worst metric phổ biến nhất: **answer_relevancy, 32/50 câu**. Trong multi-hop, faithfulness là worst ở **10/20 câu**; mean faithfulness=0,5464, thấp hơn factual=0,9125. Bottom 10 có 6 multi-hop, 2 factual, 2 adversarial.
+
+Bằng chứng gồm thiếu ý khi top 3 phủ nhiều mục/nguồn (33,39), cùng giới hạn judge với phép tính từ dữ kiện tình huống (24,26,31). Context_precision cao không đảm bảo đủ context hay answer đúng. Không dùng tổng cột để chọn nhóm yếu.
 
 ## Bẫy adversarial và giới hạn
 
-Hai câu mật khẩu (ID 43–44) chứa xung đột giữa v1.0 đã cũ và v2.0 hiện hành; câu VPN ID 50 yêu cầu phát hiện policy cấm dù cách diễn đạt gợi ý “tăng bảo mật”; câu PVI ID 48 phụ thuộc vào phủ định bị thiếu trong đoạn context được truy xuất. Các answer trong bottom 10 không chứng minh hệ thống đã nhận biết bẫy: “Không tìm thấy” không nêu được phiên bản đúng hay kết luận phủ định.
+Adversarial mean **0,7641 < factual 0,8327**, nhưng cao hơn multi-hop. Chênh lệch không tự chứng minh nhận ra bẫy. ID 49 nhận biết đúng phiên bản nhưng thiếu coverage; ID 50 không trả lời lệnh cấm dù có căn cứ. Các bản phép năm v2023/v2024 và mật khẩu v1/v2 đều được giữ.
 
-Kết quả chỉ đại diện cho 50 câu trong test set, corpus hiện tại, cấu hình generation đã lưu và hai model evaluator khai báo trong metadata. RAGAS là đánh giá tự động; cần spot-check thủ công trước khi xem các chênh lệch nhỏ là có ý nghĩa. Run này không đo tác động sau khi sửa prompt/chunking.
+Chỉ có 50 câu, 10 adversarial; một lượt generation và một batch RAGAS, chưa có confidence interval hay baseline A/B. Generation dùng prompt starter, không đặt temperature riêng. Chunks theo ký tự có thể cắt câu/list; parents được tạo nhưng setup chỉ đưa children vào generation. Evaluator/prompt/embedding có thể gây khác biệt khi chạy lại; alias evaluator chưa cố định snapshot. Chưa đo riêng ảnh hưởng ngôn ngữ của các câu hỏi AnswerRelevancy sinh.
+
+## Kiểm chứng và cách chạy lại
+
+**74 tests offline pass**: Tasks 1–4, các module Member 1 và scaffold/contracts. Answers và Phase A đã validate JSON Schema, IDs, nguồn, metrics, bottom 10, matrix/means và source SHA-256. Các kết quả này không khẳng định đã hoàn thành Phase B/C.
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/test_member1_modules.py tests/test_phase_a.py tests/test_support.py tests/test_report_contracts.py -q --tb=short --basetemp=.venv/pytest-member1-complete
+.\.venv\Scripts\python.exe scripts/setup_answers.py --live
+.\.venv\Scripts\python.exe scripts/run_experiments.py --phase a --live
+```
+
+Các lệnh `--live` dùng API. Khi thử cải tiến, lưu baseline hiện tại trước, thay một yếu tố mỗi lượt, so cùng 50 IDs; đối chiếu trước tiên 9/50 (abstention), 33/39 (coverage), 24/26/31 (calculation), 49 (version). Chỉ kết luận cải tiến từ answers/contexts/metrics mới chạy thật, không chỉnh số baseline.
+
+Codex hỗ trợ mã, kiểm tra và đối chiếu báo cáo. Chủ phần việc cần đọc và giải thích lại kết quả trước khi nộp; Phase B/C và thông tin người còn lại thuộc phần tích hợp của nhóm.
