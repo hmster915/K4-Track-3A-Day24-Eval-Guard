@@ -73,7 +73,9 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 - [ ] Run `python scripts/check_lab.py` from the repo root and resolve issues. `--with-tests` can combine offline tests if desired.
 - [ ] Do not rerun live integration after Phase B/C batches already created artifacts; prevent duplicate API calls/costs.
 - [ ] Check for secrets and real personal data. Keep `.env`, virtual environments, model caches and installers out of the submission.
-- [ ] Verify generated artifacts are committed and not ignored; review `git check-ignore`, `git status --short`, and `git rev-parse HEAD`.
+- [x] Scan tracked Git content for API-key-shaped values: none found; `.env` is not tracked. Existing answers/Phase A/Phase B artifacts are tracked and parse as JSON; Phase C artifact is still missing.
+- [ ] Verify all required artifacts are committed and not ignored; Phase C is pending. Current branch was clean and `origin/main` matched commit `367f4846ebc68dc03ef1ed6cb4302a3bd6462e4e` at verification.
+- [ ] Run `python scripts/check_lab.py` and resolve remaining issues. Latest run: 2 failures, `doc/TEAM.md` unresolved identity placeholders and missing `artifacts/guard_results.json`.
 - [ ] Record the submission commit SHA in TEAM, ensure graders can access the repo, and have the team lead submit one link through the announced VLearn/coach channel.
 - [ ] Confirm the lab date and applicable deadline from the coach announcement. The docs default to 23:59 on lab day, Asia/Ho_Chi_Minh.
 
