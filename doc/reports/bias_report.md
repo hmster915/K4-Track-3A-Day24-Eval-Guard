@@ -1,8 +1,8 @@
 # Đánh giá LLM Judge Phase B
 
-Nhóm: Chưa được cung cấp trong workspace.
+Nhóm: Skynet.
 
-Người phụ trách: Member 2.
+Người phụ trách: Nguyễn Hồng Khoa — 2A202602534 (Member 2).
 
 Nguồn: `artifacts/judge_results.json`; run timestamp: 2026-10-12T16:19:49.416906+00:00.
 Models generation/judge: `gpt-4o-mini-2024-07-18` / `gpt-4o-mini`.

@@ -1,8 +1,8 @@
 # Blueprint CI/CD cho RAG và guardrails
 
-Nhóm: Chưa được cung cấp trong workspace.
+Nhóm: Skynet.
 
-Phụ trách báo cáo: Member 2.
+Phụ trách báo cáo: Nguyễn Hồng Khoa — 2A202602534 (Member 2).
 
 Đây là **đề xuất CI/CD**, không phải workflow đã được triển khai/chạy.
 Nguồn kết quả: `artifacts/ragas_50q.json`, `artifacts/judge_results.json` và

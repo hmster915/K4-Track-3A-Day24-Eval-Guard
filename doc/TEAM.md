@@ -4,11 +4,11 @@ Tên nhóm: Skynet
 
 Repo chung: https://github.com/hmster915/K4-Track-3A-Day24-Eval-Guard
 
-Trưởng nhóm/người nộp: Nguyễn Hồng Khoa (2A202602534) và Phùng Trọng Chiến (2A202602430) — đồng nộp.
+Trưởng nhóm: Nguyễn Hồng Khoa (2A202602534). Người đồng nộp: Nguyễn Hồng Khoa (2A202602534) và Phùng Trọng Chiến (2A202602430).
 
 Ngày lab/deadline áp dụng: Chưa có thông tin deadline từ thông báo coach; nhóm cần đối chiếu trước khi nộp — Asia/Ho_Chi_Minh (UTC+07:00).
 
-Commit CP4 chứa đầy đủ hồ sơ nhóm/báo cáo/artifact để đối chiếu: `3605c713ac58dcda25b7ac5a1df9c3b23b28fca2`. Bản `main` mới nhất có thể thêm cập nhật hành chính sau commit này.
+Mốc CP4 đã push có đầy đủ thông tin nhóm và bộ artifacts/báo cáo để đối chiếu: `3605c713ac58dcda25b7ac5a1df9c3b23b28fca2`. Các cập nhật nhận diện báo cáo và checklist tiếp theo được lưu trên `main`.
 
 Mỗi nhóm nộp một repo. Điền đủ thành viên và một mục INDIVIDUAL cho từng người.
 Thêm/xóa rows để khớp nhóm thật; mẫu ba rows không ép nhóm phải có ba người.

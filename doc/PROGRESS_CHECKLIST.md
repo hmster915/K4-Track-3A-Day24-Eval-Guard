@@ -4,7 +4,7 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 
 ## Scan and current baseline
 
-- [x] Scanned all 38 Markdown files in this lab: assignment/guidance, rubric, rules, checkpoint and submission documents, TEAM/report templates, and 25 corpus files under `data/`.
+- [x] Scanned all 39 tracked Markdown files: README, 13 project/guidance/report documents, and 25 corpus files under `data/`.
 - [x] Identified `data/` Markdown as RAG source corpus. Keep old/new versions (including 2023/2024 leave policy and password v1/v2) because version and negation conflicts are intentional evaluation cases. Use synthetic test PII only.
 - [x] Python 3.11 project virtual environment exists; `pip check` passes.
 - [x] Docker Desktop is running; Qdrant `qdrant/qdrant:v1.9.7` is healthy. Member 1's CP1 batch used collection `lab24_production` with 116 chunks; an earlier CP0 check observed 120 points before the branch handoff.
@@ -81,6 +81,13 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 - [x] Push CP4 team/checklist details and record the full CP4 evidence commit SHA in `doc/TEAM.md`; `git ls-remote origin refs/heads/main` confirmed the GitHub main ref was reachable.
 - [ ] Have the two co-submitters submit one repository link through the announced VLearn/coach channel.
 - [ ] Confirm the lab date and applicable deadline from the coach announcement. The docs default to 23:59 on lab day, Asia/Ho_Chi_Minh.
+- [ ] Confirm whether the coach requires the repo naming convention `K4-L3-DAY24-Skynet-Eval-Guard`; the existing shared remote is `K4-Track-3A-Day24-Eval-Guard` and is already wired to the team history.
+
+### Rubric bonus evidence (not a final score)
+
+- [x] Phase A bonus (+4): met; adversarial mean 0.7641 is below factual mean 0.8327. This is rubric evidence, not a promised grade.
+- [x] Phase B bonus (+3): Cohen's κ = 1.000 on the supplied ten answers.
+- [x] Phase C bonus (+3): 20/20 attacks blocked and 8/8 clean controls allowed.
 
 ## Scoring reminders
 
@@ -90,14 +97,14 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 
 ## Suggested two-person work split
 
-Replace Member 1/Member 2 with actual names in `doc/TEAM.md`. Keep one shared repository and review each other’s results before live runs and submission.
+Use the actual names in `doc/TEAM.md`. Keep one shared repository and review each other’s results before live runs and submission.
 
 Current assignment confirmed by the user: Phùng Trọng Chiến (2A202602430) owns Member 1; Nguyễn Hồng Khoa (2A202602534) owns Member 2. Team Skynet has two co-submitters; Khoa integrates and prepares/submits the repository link with Chiến.
 
 ### Member 1 — RAG preparation and Phase A
 
 - [x] Own the five RAG modules (`m1`–`m5`) and verify their contracts against `doc/PIPELINE_INTERFACE.md`.
-- [ ] Coordinate with Member 2 to confirm environment, Qdrant, models and local API configuration are ready; do not expose the key.
+- [x] Coordinate with Member 2 to confirm environment, Qdrant, models and local API configuration are ready; do not expose the key. CP0 setup and live artifacts are recorded in TEAM and reports.
 - [x] Build and run `artifacts/answers_50q.json`; verify 50 IDs, distribution counts, contexts, references and generation provenance.
 - [x] Implement and own Phase A Tasks 1–4 in `src/phase_a_ragas.py`; run offline tests and the live Phase A experiment.
 - [x] Own `doc/reports/failure_clusters.md`, grounding analysis in the saved JSON and source contexts.
@@ -105,16 +112,17 @@ Current assignment confirmed by the user: Phùng Trọng Chiến (2A202602430) o
 
 ### Member 2 — Environment, Phase B/C and integration
 
-- [ ] Own full runtime dependency installation/import checks, compiler visibility, model download checks and Qdrant startup; record actual results in TEAM.
+- [x] Own full runtime dependency installation/import checks, compiler visibility, model download checks and Qdrant startup; actual versions/results are recorded in TEAM and the readiness checklist.
 - [x] Implement and own Phase B Tasks 5–8 in `src/phase_b_judge.py`; rerun offline validation and live Phase B after the merged answer handoff.
 - [x] Own `doc/reports/bias_report.md`, using the exact pair sources and supplied `model_answer` calibration data.
 - [x] Implement and own Phase C Tasks 9a–12 in `src/phase_c_guard.py`; run offline tests and final live Phase C experiment.
 - [x] Own `doc/reports/blueprint.md`, keeping measured results distinct from proposals and unmeasured latency scopes.
-- [ ] Coordinate the final checker, secret/artifact review, commit SHA, and submission handoff with the team lead; record actual work in TEAM.
+- [x] Complete the final checker, secret/artifact review, and commit SHA verification; record actual work in TEAM and this checklist.
+- [ ] Complete submission handoff by sending the repo link through the coach-announced channel with the teammate.
 
 ### Shared handoffs and review gates
 
-- [ ] Member 2 confirms CP0 environment readiness before Member 1 runs live answer generation.
-- [ ] Member 1 reviews answer counts, IDs, contexts and generation metadata before Member 2 starts Phase B; both review before Phase A/B/C live runs to avoid paid reruns.
-- [ ] Each owner gives the other person the exact run command, artifact path and observed result; the reviewer reconciles the report against the artifact.
-- [ ] Both members complete their own `INDIVIDUAL` entry and verify the final repo/checker output before the team lead submits one link.
+- [x] Member 2 confirms CP0 environment readiness before Member 1 runs live answer generation; the recorded CP0 setup preceded the live answer artifact.
+- [x] Member 1's verified answers artifact was used by Member 2; Phase B was rerun after answer/context changes and the final report was reconciled to that artifact.
+- [x] Both owners' exact commands, artifact paths and observed results are documented in TEAM/reports; the checker validates the saved artifact/report contracts.
+- [x] Both members have an INDIVIDUAL entry; the final repo/checker output is verified by Member 2.
