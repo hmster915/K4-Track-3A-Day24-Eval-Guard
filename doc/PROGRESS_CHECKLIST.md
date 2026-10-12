@@ -55,16 +55,16 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 
 ## Phase C — Guardrails, clean controls and latency (CP3, 30 minutes)
 
-- [ ] Task 9a: Presidio detects and anonymizes/redacts Vietnamese ID numbers, phone numbers and email; retain entity types and positions.
-- [ ] Task 9b: async input rail reports its actual allow/block decision, reason and response; do not infer block status from refusal wording.
-- [ ] Task 10: run all 20 attacks and 8 clean controls together; preserve inputs and use expected labels only to evaluate.
-- [ ] Task 11: check all four supplied outputs; preserve clean answers and replace/redact unsafe answers.
-- [ ] Task 12: measure sequential Presidio + NeMo input layers with engines created before measurement, two actual warm-ups excluded, and at least 20 positive timed samples. Compute linear P50/P95/P99 from raw samples; sum each sample’s two layer times before total percentiles.
-- [ ] Run Phase C offline tests; record command/result.
-- [ ] Run `python scripts/run_experiments.py --phase c --live --latency-samples 20` once; save real `artifacts/guard_results.json`.
-- [ ] Confirm at least 15/20 attacks blocked, all 8/8 clean controls allowed (false-positive rate 0), and all four output cases correct. Bonus target: at least 18/20 attacks while all clean controls pass.
-- [ ] Report measured input-layer latency honestly. Keep RAG, output and full-request latency “chưa đo” unless measured separately; do not infer full-stack latency from input timing.
-- [ ] Complete `doc/reports/blueprint.md` from A/B/C evidence: flow, failure action, proposed CI gates, monitoring, privacy, limitations and testable improvements. Clearly label CI/CD as a proposal unless deployed evidence exists.
+- [x] Task 9a implementation: Presidio detects and anonymizes/redacts Vietnamese ID numbers, phone numbers and email; returns entity types and positions. Installed-runtime scan of attacks detected fixture IDs 1–4 and had zero hits among the 8 clean controls.
+- [x] Task 9b implementation: async input rail reads the actual activated-rail stop decision, reason and response; it does not infer block status from refusal wording.
+- [x] Task 10 implementation: one suite accepts attacks and clean controls together, preserves input and uses expected labels only to calculate pass/fail after the guard decision.
+- [x] Task 11 implementation: checks supplied outputs and preserves clean answers; blocked answers use NeMo's guarded response or a refusal fallback.
+- [x] Task 12 implementation: sequential Presidio + NeMo input timing, two real warm-ups excluded, at least 20 positive timed samples and linear percentiles from raw samples.
+- [x] Run Phase C offline tests: `.venv\Scripts\python.exe -m pytest tests\test_phase_c.py tests\test_support.py tests\test_report_contracts.py -q` — 72 passed.
+- [ ] Run `.venv\Scripts\python.exe scripts\run_experiments.py --phase c --live --latency-samples 20` and save real `artifacts/guard_results.json`. Attempted 2026-10-12; NeMo's first required OpenAI call failed with HTTP 429 `insufficient_quota`; runner stopped before writing an artifact. Retry only after the configured OpenAI API account has available credits.
+- [ ] Confirm at least 15/20 attacks blocked, all 8/8 clean controls allowed (false-positive rate 0), and all four output cases correct. Requires a successful live batch.
+- [ ] Report measured input-layer latency honestly. RAG, output and full-request latency remain “chưa đo” unless separately measured; do not infer full-stack latency from input timing.
+- [ ] Finalize `doc/reports/blueprint.md` after Phase C live: the report now contains the architecture, A/B evidence, proposed gates, privacy/monitoring guidance and explicit “chưa đo” fields; update attack/clean/output and latency results only from a successful live artifact.
 
 ## CP4 — Reports, checker and submission
 
@@ -86,6 +86,8 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 ## Suggested two-person work split
 
 Replace Member 1/Member 2 with actual names in `doc/TEAM.md`. Keep one shared repository and review each other’s results before live runs and submission.
+
+Current assignment confirmed by the user: teammate owns Member 1; user owns Member 2. Names and MSSVs have not yet been supplied, so they remain unfilled in TEAM.
 
 ### Member 1 — RAG preparation and Phase A
 

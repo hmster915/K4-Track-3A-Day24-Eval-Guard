@@ -3,29 +3,28 @@ from __future__ import annotations
 """Phase C: Production Guardrails — Presidio PII + NeMo Guardrails + P95 Latency."""
 
 import asyncio
-import json
 import os
-import statistics
 import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import ADVERSARIAL_SET_PATH, GUARDRAILS_CONFIG_DIR, LATENCY_BUDGET_P95_MS, PRESIDIO_LANGUAGE
+from config import GUARDRAILS_CONFIG_DIR, PRESIDIO_LANGUAGE
 
 
 # ─── Task 9a: Presidio PII Detection ─────────────────────────────────────────
 
 def setup_presidio():
-    """Khởi tạo Presidio engine với custom Vietnamese PII recognizers. (Đã implement sẵn)
+    """Khởi tạo Presidio với các recognizer PII cần cho bài lab.
 
     Custom recognizers thêm vào:
         VN_CCCD  — số CCCD 12 chữ số hoặc CMND 9 chữ số
         VN_PHONE — số điện thoại Việt Nam (0[3-9]xxxxxxxx)
 
-    Các recognizers mặc định đã có sẵn: EMAIL, PHONE_NUMBER (international), ...
     """
-    from presidio_analyzer import AnalyzerEngine, RecognizerRegistry, Pattern, PatternRecognizer
+    from presidio_analyzer import (AnalyzerEngine, RecognizerRegistry, Pattern,
+                                   PatternRecognizer)
     from presidio_anonymizer import AnonymizerEngine
+    from presidio_analyzer.nlp_engine import NoOpNlpEngine
 
     cccd_recognizer = PatternRecognizer(
         supported_entity="VN_CCCD",
@@ -38,13 +37,24 @@ def setup_presidio():
         supported_entity="VN_PHONE",
         patterns=[Pattern("VN mobile", r"\b0[3-9]\d{8}\b", 0.9)],
     )
+    email_recognizer = PatternRecognizer(
+        supported_entity="EMAIL_ADDRESS",
+        patterns=[Pattern(
+            "Email address",
+            r"(?<![\w.+-])[\w.!#$%&'*+/=?^_`{|}~-]+@(?:[\w](?:[\w-]*[\w])?\.)+[A-Za-z]{2,}(?![\w.-])",
+            0.9,
+        )],
+    )
 
-    registry = RecognizerRegistry()
-    registry.load_predefined_recognizers()
-    registry.add_recognizer(cccd_recognizer)
-    registry.add_recognizer(phone_recognizer)
+    registry = RecognizerRegistry(
+        recognizers=[cccd_recognizer, phone_recognizer, email_recognizer],
+        supported_languages=[PRESIDIO_LANGUAGE],
+    )
 
-    analyzer  = AnalyzerEngine(registry=registry)
+    nlp_engine = NoOpNlpEngine(models=[{"lang_code": PRESIDIO_LANGUAGE,
+                                        "model_name": "no_op"}])
+    analyzer = AnalyzerEngine(registry=registry, nlp_engine=nlp_engine,
+                              supported_languages=[PRESIDIO_LANGUAGE])
     anonymizer = AnonymizerEngine()
     return analyzer, anonymizer
 
@@ -59,22 +69,50 @@ def pii_scan(text: str, analyzer=None, anonymizer=None) -> dict:
           "anonymized": str,   # text với PII được thay bằng <TYPE>
         }
     """
-    # TODO: Implement
-    # if analyzer is None or anonymizer is None:
-    #     analyzer, anonymizer = setup_presidio()
-    #
-    # results = analyzer.analyze(text=text, language=PRESIDIO_LANGUAGE)
-    # if not results:
-    #     return {"has_pii": False, "entities": [], "anonymized": text}
-    #
-    # anonymized = anonymizer.anonymize(text=text, analyzer_results=results).text
-    # entities = [
-    #     {"type": r.entity_type, "text": text[r.start:r.end],
-    #      "score": round(r.score, 3), "start": r.start, "end": r.end}
-    #     for r in results
-    # ]
-    # return {"has_pii": True, "entities": entities, "anonymized": anonymized}
-    return {"has_pii": False, "entities": [], "anonymized": text}
+    if not isinstance(text, str):
+        raise TypeError("PII scan input must be a string")
+    if analyzer is None or anonymizer is None:
+        analyzer, anonymizer = setup_presidio()
+    results = analyzer.analyze(text=text, language=PRESIDIO_LANGUAGE)
+    entities = []
+    for result in results:
+        start, end = int(result.start), int(result.end)
+        if not 0 <= start < end <= len(text):
+            raise ValueError("Presidio returned an invalid entity span")
+        entities.append({
+            "type": result.entity_type, "text": text[start:end],
+            "score": round(float(result.score), 3), "start": start, "end": end,
+        })
+    entities.sort(key=lambda row: (row["start"], row["end"], row["type"]))
+    if not results:
+        return {"has_pii": False, "entities": [], "anonymized": text}
+    anonymized = anonymizer.anonymize(text=text, analyzer_results=results).text
+    return {"has_pii": True, "entities": entities, "anonymized": anonymized}
+
+
+def _rail_decision(result, *, stage: str) -> tuple[bool, str]:
+    """Read the actual NeMo stop decision from activated rail logs."""
+    log = getattr(result, "log", None)
+    if log is None or not hasattr(log, "activated_rails"):
+        raise ValueError(f"NeMo {stage} response did not include activated_rails logging")
+    activated = log.activated_rails
+    if activated is None:
+        raise ValueError(f"NeMo {stage} activated_rails is unavailable")
+    stopped = [rail for rail in activated if bool(getattr(rail, "stop", False))]
+    return bool(stopped), f"nemo_{stage}_rail" if stopped else None
+
+
+def _response_text(result) -> str:
+    response = getattr(result, "response", None)
+    if isinstance(response, str):
+        text = response
+    elif isinstance(response, list) and response and isinstance(response[0], dict):
+        text = response[0].get("content", "")
+    else:
+        text = ""
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("NeMo returned an empty or invalid response")
+    return text
 
 
 # ─── Task 9b + 11: NeMo Guardrails ───────────────────────────────────────────
@@ -102,23 +140,17 @@ async def check_input_rail(text: str, rails=None) -> dict:
           "response":       str,          # NeMo's raw response
         }
     """
-    # TODO: Implement
-    # if rails is None:
-    #     rails = setup_nemo_rails()
-    #
-    # result = await rails.generate_async(
-    #     messages=[{"role": "user", "content": text}],
-    #     options={"rails": ["input"], "log": {"activated_rails": True}},
-    # )
-    # response = result.response[0]["content"]
-    # # Đọc quyết định rail; không suy ra blocked từ từ khóa có thể nằm trong input sạch.
-    # blocked = any(rail.stop for rail in result.log.activated_rails)
-    # return {
-    #     "allowed":        not blocked,
-    #     "blocked_reason": "nemo_input_rail" if blocked else None,
-    #     "response":       response,
-    # }
-    return {"allowed": True, "blocked_reason": None, "response": ""}
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("Input rail requires non-empty text")
+    if rails is None:
+        rails = setup_nemo_rails()
+    result = await rails.generate_async(
+        messages=[{"role": "user", "content": text}],
+        options={"rails": ["input"], "log": {"activated_rails": True}},
+    )
+    blocked, reason = _rail_decision(result, stage="input")
+    return {"allowed": not blocked, "blocked_reason": reason,
+            "response": _response_text(result)}
 
 
 async def check_output_rail(question: str, answer: str, rails=None) -> dict:
@@ -135,33 +167,34 @@ async def check_output_rail(question: str, answer: str, rails=None) -> dict:
           "final_answer":   str,          # answer đã qua guard (có thể bị redact)
         }
     """
-    # TODO: Implement
-    # if rails is None:
-    #     rails = setup_nemo_rails()
-    #
-    # # Cung cấp context đầy đủ để output rail hoạt động
-    # result = await rails.generate_async(
-    #     messages=[
-    #         {"role": "user", "content": question},
-    #         {"role": "assistant", "content": answer},
-    #     ],
-    #     options={"rails": ["output"], "log": {"activated_rails": True}},
-    # )
-    # response = result.response[0]["content"]
-    # flagged = any(rail.stop for rail in result.log.activated_rails)
-    # return {
-    #     "safe":           not flagged,
-    #     "flagged_reason": "nemo_output_rail" if flagged else None,
-    #     "final_answer":   response if flagged else answer,
-    # }
-    return {"safe": True, "flagged_reason": None, "final_answer": answer}
+    if not isinstance(question, str) or not question.strip():
+        raise ValueError("Output rail requires a non-empty question")
+    if not isinstance(answer, str) or not answer.strip():
+        raise ValueError("Output rail requires a non-empty answer")
+    if rails is None:
+        rails = setup_nemo_rails()
+    result = await rails.generate_async(
+        messages=[{"role": "user", "content": question},
+                  {"role": "assistant", "content": answer}],
+        options={"rails": ["output"], "log": {"activated_rails": True}},
+    )
+    flagged, reason = _rail_decision(result, stage="output")
+    guarded_response = _response_text(result)
+    if not flagged:
+        return {"safe": True, "flagged_reason": None, "final_answer": answer}
+    fallback = (
+        "Xin lỗi, tôi không thể cung cấp nội dung này. Tôi chỉ hỗ trợ chính sách nội bộ "
+        "của công ty và không cung cấp dữ liệu cá nhân, thông tin nhân viên bí mật hoặc mật khẩu."
+    )
+    final_answer = guarded_response if guarded_response != answer else fallback
+    return {"safe": False, "flagged_reason": reason, "final_answer": final_answer}
 
 
 # ─── Task 10: Adversarial Test Suite ─────────────────────────────────────────
 
 def run_adversarial_suite(adversarial_set: list[dict], rails=None,
                            analyzer=None, anonymizer=None) -> list[dict]:
-    """Task 10: Chạy 20 adversarial inputs qua full guard stack, so sánh với expected.
+    """Task 10: Chạy input cases qua guard stack; expected chỉ dùng sau quyết định.
 
     Guard stack order:
         1. pii_scan()         → block nếu has_pii (cho category pii_injection)
@@ -176,44 +209,38 @@ def run_adversarial_suite(adversarial_set: list[dict], rails=None,
           "passed": bool,
         }
     """
-    # TODO: Implement
-    # if analyzer is None or anonymizer is None:
-    #     analyzer, anonymizer = setup_presidio()
-    # if rails is None:
-    #     rails = setup_nemo_rails()
-    # async def _run_all():
-    #     results = []
-    #     for item in adversarial_set:
-    #         blocked_by = None
-    #
-    #         # Layer 1: Presidio PII (synchronous, fast)
-    #         pii_result = pii_scan(item["input"], analyzer, anonymizer)
-    #         if pii_result["has_pii"]:
-    #             blocked_by = "presidio"
-    #
-    #         # Layer 2: NeMo input rail (async — await, không dùng asyncio.run())
-    #         if blocked_by is None:
-    #             rail_result = await check_input_rail(item["input"], rails)
-    #             if not rail_result["allowed"]:
-    #                 blocked_by = "nemo_input"
-    #
-    #         actual = "blocked" if blocked_by else "allowed"
-    #         results.append({
-    #             "id":         item["id"],
-    #             "category":   item["category"],
-    #             "input":      item["input"],
-    #             "expected":   item["expected"],
-    #             "actual":     actual,
-    #             "blocked_by": blocked_by,
-    #             "passed":     actual == item["expected"],
-    #         })
-    #     return results
-    #
-    # results = asyncio.run(_run_all())   # một lần duy nhất — không gọi asyncio.run() trong loop
-    # passed = sum(1 for r in results if r["passed"])
-    # print(f"Adversarial suite: {passed}/{len(results)} passed")
-    # return results
-    return []
+    if not isinstance(adversarial_set, list):
+        raise TypeError("Input suite must be a list")
+    if analyzer is None or anonymizer is None:
+        analyzer, anonymizer = setup_presidio()
+    if rails is None:
+        rails = setup_nemo_rails()
+
+    async def run_all():
+        rows = []
+        for item in adversarial_set:
+            user_text = item.get("input")
+            if not isinstance(user_text, str) or not user_text.strip():
+                raise ValueError(f"Input case {item.get('id')} has no text")
+            pii = pii_scan(user_text, analyzer, anonymizer)
+            blocked_by = "presidio" if pii["has_pii"] else None
+            if blocked_by is None:
+                decision = await check_input_rail(user_text, rails)
+                if not decision["allowed"]:
+                    blocked_by = "nemo_input"
+            actual = "blocked" if blocked_by else "allowed"
+            expected = item.get("expected")
+            rows.append({
+                "id": item["id"], "category": item["category"], "input": user_text,
+                "expected": expected, "actual": actual, "blocked_by": blocked_by,
+                "passed": actual == expected,
+            })
+        return rows
+
+    results = asyncio.run(run_all())
+    passed = sum(row["passed"] for row in results)
+    print(f"Input guard suite: {passed}/{len(results)} expected decisions matched")
+    return results
 
 
 # ─── Task 12: P95 Latency Measurement ────────────────────────────────────────
@@ -229,40 +256,40 @@ def measure_p95_latency(test_inputs: list[str], n_runs: int = 20,
     percentiles at (n - 1) * q. Submission requires n_runs >= 20.
     Short-circuit request timing, RAG and output timing are outside this scope.
     """
-    # TODO: Implement sample collection (the statistics helper is provided).
-    # from src.experiment_support import summarize_latency
-    # if not test_inputs or n_runs < 1:
-    #     raise ValueError("Need inputs and n_runs >= 1")
-    # if analyzer is None or anonymizer is None:
-    #     analyzer, anonymizer = setup_presidio()
-    # if rails is None:
-    #     rails = setup_nemo_rails()
-    # async def _measure():
-    #     for i in range(2):
-    #         text = test_inputs[i % len(test_inputs)]
-    #         pii_scan(text, analyzer, anonymizer)
-    #         await check_input_rail(text, rails)
-    #     samples = []
-    #     for i in range(n_runs):
-    #         text = test_inputs[i % len(test_inputs)]
-    #         t0 = time.perf_counter()
-    #         pii_scan(text, analyzer, anonymizer)
-    #         pii_ms = (time.perf_counter() - t0) * 1000
-    #         t1 = time.perf_counter()
-    #         await check_input_rail(text, rails)
-    #         nemo_ms = (time.perf_counter() - t1) * 1000
-    #         samples.append({"presidio_ms": pii_ms, "nemo_input_ms": nemo_ms,
-    #                         "input_guard_ms": pii_ms + nemo_ms})
-    #     return samples
-    # return summarize_latency(asyncio.run(_measure()), warmup_runs=2)
-    return {
-        "scope": "input_layers_sequential", "percentile_method": "linear",
-        "n_samples": 0, "warmup_runs": 0, "samples": [],
-        "presidio_ms": {"p50": 0.0, "p95": 0.0, "p99": 0.0},
-        "nemo_input_ms": {"p50": 0.0, "p95": 0.0, "p99": 0.0},
-        "input_guard_ms": {"p50": 0.0, "p95": 0.0, "p99": 0.0},
-        "latency_budget_ok": False, "budget_ms": LATENCY_BUDGET_P95_MS,
-    }
+    from src.experiment_support import summarize_latency
+
+    if not test_inputs or any(not isinstance(value, str) or not value.strip() for value in test_inputs):
+        raise ValueError("Latency measurement requires non-empty input strings")
+    if n_runs < 20:
+        raise ValueError("At least 20 timed latency samples are required")
+    if analyzer is None or anonymizer is None:
+        analyzer, anonymizer = setup_presidio()
+    if rails is None:
+        rails = setup_nemo_rails()
+
+    async def measure():
+        for index in range(2):
+            value = test_inputs[index % len(test_inputs)]
+            pii_scan(value, analyzer, anonymizer)
+            await check_input_rail(value, rails)
+        samples = []
+        for index in range(n_runs):
+            value = test_inputs[index % len(test_inputs)]
+            start = time.perf_counter()
+            pii_scan(value, analyzer, anonymizer)
+            presidio_ms = (time.perf_counter() - start) * 1000
+            start = time.perf_counter()
+            await check_input_rail(value, rails)
+            nemo_ms = (time.perf_counter() - start) * 1000
+            total_ms = presidio_ms + nemo_ms
+            if min(presidio_ms, nemo_ms, total_ms) <= 0:
+                raise ValueError("Measured latency samples must be positive")
+            samples.append({"presidio_ms": presidio_ms,
+                            "nemo_input_ms": nemo_ms,
+                            "input_guard_ms": total_ms})
+        return samples
+
+    return summarize_latency(asyncio.run(measure()), warmup_runs=2)
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
