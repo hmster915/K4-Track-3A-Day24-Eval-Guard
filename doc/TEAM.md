@@ -1,14 +1,14 @@
 # Nhóm thực hiện K4 Track 3A
 
-Tên nhóm: {{Tên nhóm}}
+Tên nhóm: Skynet
 
 Repo chung: https://github.com/hmster915/K4-Track-3A-Day24-Eval-Guard
 
-Trưởng nhóm/người nộp: {{Họ tên và MSSV}}
+Trưởng nhóm/người nộp: Nguyễn Hồng Khoa (2A202602534) và Phùng Trọng Chiến (2A202602430) — đồng nộp.
 
-Ngày lab/deadline áp dụng: {{Ngày giờ theo thông báo lớp}} — Asia/Ho_Chi_Minh (UTC+07:00)
+Ngày lab/deadline áp dụng: Chưa có thông tin deadline từ thông báo coach; nhóm cần đối chiếu trước khi nộp — Asia/Ho_Chi_Minh (UTC+07:00).
 
-Commit dùng để chấm: {{Commit SHA}}
+Commit dùng để chấm: nhánh `main` tại repo chung; SHA sẽ được xác nhận sau khi đẩy cập nhật CP4 này.
 
 Mỗi nhóm nộp một repo. Điền đủ thành viên và một mục INDIVIDUAL cho từng người.
 Thêm/xóa rows để khớp nhóm thật; mẫu ba rows không ép nhóm phải có ba người.
@@ -18,9 +18,9 @@ Thêm/xóa rows để khớp nhóm thật; mẫu ba rows không ép nhóm phải
 | STT | Họ và tên | MSSV | Vai trò / công việc thật | Bằng chứng |
 |---|---|---|---|---|
 | 1 | Phùng Trọng Chiến | 2A202602430 | Member 1: module RAG m1–m5, sinh 50 answers, Phase A Tasks 1–4 và phân tích lỗi | Nhánh `chiến`; `src/m1_chunking.py` đến `src/m5_enrichment.py`, `src/phase_a_ragas.py`, `tests/test_member1_modules.py`, `artifacts/answers_50q.json`, `artifacts/ragas_50q.json`, `doc/reports/failure_clusters.md` |
-| 2 | {{Họ tên}} | {{MSSV}} | Member 2: Phase B/C, judge/guard reports, final integration | Commits `f212848`, `367f484`, `98490fe`, merge `f1b2239`; `artifacts/judge_results.json`, `artifacts/guard_results.json`, `doc/reports/bias_report.md`, `doc/reports/blueprint.md` |
+| 2 | Nguyễn Hồng Khoa | 2A202602534 | Member 2: Phase B/C, judge/guard reports, final integration | Commits `f212848`, `367f484`, `98490fe`, merge `f1b2239`; `artifacts/judge_results.json`, `artifacts/guard_results.json`, `doc/reports/bias_report.md`, `doc/reports/blueprint.md` |
 
-Người tích hợp/chạy batch/nộp link: {{Họ tên, công việc và bằng chứng}}.
+Người tích hợp/chạy batch/nộp link: Nguyễn Hồng Khoa (2A202602534) tích hợp, chạy kiểm tra batch và chuẩn bị/nộp link repo cùng Phùng Trọng Chiến (2A202602430).
 
 ## Môi trường và chuẩn bị trước lớp
 
@@ -45,16 +45,15 @@ Sao chép mẫu cho mỗi thành viên; tiêu đề họ tên không dấu-MSSV.
 - Phân tích: matrix worst_metric thống kê metric thấp nhất của từng câu; distribution yếu được xác định theo mean thấp nhất. Báo cáo đối chiếu answer, contexts và reference để phân loại nguyên nhân. Model generation và evaluator được ghi riêng.
 - Giới hạn/cách xử lý: evaluator dùng RAGAS, dừng khi model/retrieval lỗi. Khóa PyArrow 17 để tương thích NumPy 1.26.4 và thêm SentencePiece cho tokenizer reranker. Ba answers abstain dù có một phần hoặc đủ bằng chứng; câu multi-hop thiếu coverage top 3; một số phép tính đúng bị faithfulness chấm 0. Các trường hợp này được phân tích trong failure report.
 
-### {{HoVaTen}}-{{MSSV}}
+### NguyenHongKhoa-2A202602534
 
 - Phần được giao và phần thực tế đã làm: Member 2 phụ trách Phase B/C và tích hợp. Hoàn thiện judge pairwise/calibration, Presidio/NeMo rails, adversarial suite, output check và latency sampling; cập nhật bias report và blueprint.
 - Bằng chứng: commits `f212848` (CP2), `367f484` (CP3 implementation), `98490fe` (CP3 live), merge `f1b2239`; artifacts `judge_results.json`, `guard_results.json`; reports `bias_report.md`, `blueprint.md`.
-- Cách kiểm tra: sau khi nhận answers mới từ PR Member 1, chạy lại `.venv\Scripts\python.exe scripts\run_experiments.py --phase b --live` (timestamp `2026-10-12T16:19:49.416906+00:00`); Phase C live cuối có 20/20 attack, 8/8 clean và 4/4 outputs đúng. `.venv\Scripts\python.exe -m pytest tests\ -m "not integration" -q --tb=short`: 94 passed, 3 deselected. Checker qua tất cả artifact/report checks; TEAM còn thiếu danh tính thật.
+- Cách kiểm tra: sau khi nhận answers mới từ PR Member 1, chạy lại `.venv\Scripts\python.exe scripts\run_experiments.py --phase b --live` (timestamp `2026-10-12T16:19:49.416906+00:00`); Phase C live cuối có 20/20 attack, 8/8 clean và 4/4 outputs đúng. `.venv\Scripts\python.exe -m pytest tests\ -m "not integration" -q --tb=short`: 94 passed, 3 deselected. Checker qua các artifact/report checks; CP4 checker được chạy lại sau khi hoàn tất thông tin nhóm.
 - Điều đã học: đảo thứ tự A/B giúp nhận biết bất ổn của judge; guard phải đánh giá attack cùng clean controls; latency cần đo từng tầng và báo P95 thật. Batch hiện tại đạt 20/20 attack và 0 false positives; input guard P95 931.35081 ms vượt budget 500 ms.
 - Giới hạn/cách xử lý: Phase B/C là tập mẫu nhỏ; RAG, output và full-request latency chưa đo. Đã rerun Phase B sau khi CP1 thay đổi 37 answers và contexts để candidate A khớp artifact mới. CI/CD trong blueprint là đề xuất, chưa triển khai.
 - Nguồn/AI hỗ trợ nếu có: OpenAI Codex hỗ trợ triển khai/sửa code và soạn báo cáo trong phạm vi Member 2; tự kiểm chứng bằng offline suite, live artifacts, schema/report contracts và checker. Không ghi API key vào repo.
 
 ## Cập nhật sau khi nộp
 
-{{Ghi phiên bản nộp; nếu sửa sau deadline, ghi commit/thời điểm/lý do và thông báo
-coach cho phép áp dụng bản cập nhật. Nếu không có cập nhật, ghi rõ không có.}}
+Chưa nộp; phiên bản và thời điểm nộp sẽ được ghi sau khi team nộp link. Chưa có xác nhận về deadline từ thông báo coach.

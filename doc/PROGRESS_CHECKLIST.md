@@ -28,7 +28,7 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 - [x] Member 1 ran `python scripts/setup_answers.py --live` (2026-10-12): 116 chunks indexed in Qdrant and 50 answers generated in their verified environment.
 - [x] Verify `artifacts/answers_50q.json`: exactly 50 source IDs in source order; 20 factual, 20 multi_hop, 10 adversarial; source questions and ground truth unchanged; all answers and retrieved contexts are non-empty.
 - [x] Verify generation provenance for all answers: `generation_mode=llm`; all rows include model ID `gpt-4o-mini-2024-07-18`. No extractive fallback rows.
-- [ ] Fill the team/repo/leader/member/role details and readiness evidence plan in `doc/TEAM.md`.
+- [x] Fill team Skynet, shared repo, both members/MSSVs/roles, leader/co-submitters and integration/submission-link owner in `doc/TEAM.md`; deadline remains explicitly pending coach confirmation.
 
 ## Phase A — RAGAS and failure analysis (CP1, 30 minutes)
 
@@ -68,9 +68,9 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 
 ## CP4 — Reports, checker and submission
 
-- [ ] Complete every member’s real role, evidence, checks, learning, limitations and AI/source disclosure in `doc/TEAM.md`; remove placeholders.
+- [x] Complete every member’s real role, evidence, checks, learning, limitations and AI/source disclosure in `doc/TEAM.md`; identify unresolved deadline as pending coach confirmation.
 - [x] Complete all three reports from actual artifacts; report contract validation passes with no placeholders or blank required tables.
-- [ ] Run `python scripts/check_lab.py` from the repo root and resolve issues. Latest run passes every check except `doc/TEAM.md`, which still has unresolved member/group identity placeholders.
+- [x] Run `.venv\Scripts\python.exe scripts\check_lab.py` from the repo root after the latest TEAM update — 24/24 checks pass; this is a completeness checker, not a rubric score.
 - [x] Re-ran Phase B once because the merged Member 1 branch replaced 37 answer texts and all 50 contexts; this restored source consistency. Phase C final artifact remains valid, and no further live runs are planned.
 - [x] Secret/data review: committed-file scan found no API-key-shaped value; `.env`, `.venv`, caches and installers are not tracked. Fixture PII is synthetic; TEAM contains the teammate identity they supplied for submission.
 - [x] Scan committed Git content for API-key-shaped values: none found; `.env` is not tracked. All four experiment artifacts are tracked and not ignored.
@@ -78,7 +78,7 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 - [x] Offline suite after integration: `.venv\Scripts\python.exe -m pytest tests\ -m "not integration" -q --tb=short` — 94 passed, 3 deselected. `pip check` passes; NumPy 1.26.4, PyArrow 17.0.0 and SentencePiece 0.2.2 verified.
 - [x] Verify all experiment artifacts are committed and not ignored; `answers_50q.json`, `ragas_50q.json`, `judge_results.json` and `guard_results.json` are tracked on the merged main.
 - [x] Verify pushed main: clean working tree; local and remote HEAD both `f1b2239ff39e34c3e3e2b8f9cfe7f12bad6d46f0`.
-- [ ] Record final submission commit SHA in TEAM after member/group details are supplied, ensure graders can access the repo, and have the team lead submit one link through the announced VLearn/coach channel.
+- [ ] Push the completed CP4 documentation, record/verify the submission commit, confirm graders can access the repo, and have the two co-submitters submit one link through the announced VLearn/coach channel.
 - [ ] Confirm the lab date and applicable deadline from the coach announcement. The docs default to 23:59 on lab day, Asia/Ho_Chi_Minh.
 
 ## Scoring reminders
@@ -91,7 +91,7 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 
 Replace Member 1/Member 2 with actual names in `doc/TEAM.md`. Keep one shared repository and review each other’s results before live runs and submission.
 
-Current assignment confirmed by the user: teammate owns Member 1; user owns Member 2. Names and MSSVs have not yet been supplied, so they remain unfilled in TEAM.
+Current assignment confirmed by the user: Phùng Trọng Chiến (2A202602430) owns Member 1; Nguyễn Hồng Khoa (2A202602534) owns Member 2. Team Skynet has two co-submitters; Khoa integrates and prepares/submits the repository link with Chiến.
 
 ### Member 1 — RAG preparation and Phase A
 
