@@ -77,7 +77,7 @@ Track each item with a named owner and evidence. Mark an item complete only afte
 - [x] Merge PR #1 (`chiến` → `main`) with all Member 1 changes; local merge commit `f1b2239` was pushed and pulled back from `origin/main`. GitHub reports the PR merged.
 - [x] Offline suite after integration: `.venv\Scripts\python.exe -m pytest tests\ -m "not integration" -q --tb=short` — 94 passed, 3 deselected. `pip check` passes; NumPy 1.26.4, PyArrow 17.0.0 and SentencePiece 0.2.2 verified.
 - [x] Verify all experiment artifacts are committed and not ignored; `answers_50q.json`, `ragas_50q.json`, `judge_results.json` and `guard_results.json` are tracked on the merged main.
-- [ ] Verify final pushed main: record its resulting HEAD after the SHA note is pushed.
+- [x] Verify pushed main at CP4 publication: local HEAD and `git ls-remote origin refs/heads/main` both returned `25cd5af193ef84fc63d00333bf2bd7b3b935e4d2`; working tree was clean.
 - [x] Push CP4 team/checklist details and record the full CP4 evidence commit SHA in `doc/TEAM.md`; `git ls-remote origin refs/heads/main` confirmed the GitHub main ref was reachable.
 - [ ] Have the two co-submitters submit one repository link through the announced VLearn/coach channel.
 - [ ] Confirm the lab date and applicable deadline from the coach announcement. The docs default to 23:59 on lab day, Asia/Ho_Chi_Minh.
